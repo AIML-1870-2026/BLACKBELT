@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackBelt - AIML 1870 Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .projects {
+            display: grid;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .project-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .project-title {
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .project-description {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BlackBelt</h1>
+        <p class="subtitle">AIML 1870 - Spring 2025 Portfolio</p>
+
+        <div class="projects">
+            <a href="Assignment-01/" class="project-card">
+                <div class="project-title">Assignment 01</div>
+                <div class="project-description">Introduction project</div>
+            </a>
+
+            <a href="Assignment-1/" class="project-card">
+                <div class="project-title">Assignment 1</div>
+                <div class="project-description">First assignment</div>
+            </a>
+
+            <a href="Starfield/" class="project-card">
+                <div class="project-title">Starfield</div>
+                <div class="project-description">Interactive rocket ship animation with Earth</div>
+            </a>
+
+            <a href="Stellar%20Web/" class="project-card">
+                <div class="project-title">Stellar Web</div>
+                <div class="project-description">Web project</div>
+            </a>
+
+            <a href="Test-Project/" class="project-card">
+                <div class="project-title">Test Project</div>
+                <div class="project-description">Testing and experimentation</div>
+            </a>
+        </div>
+
+        <footer>
+            AIML-1870-2026 Organization
+        </footer>
+    </div>
+</body>
+</html>
