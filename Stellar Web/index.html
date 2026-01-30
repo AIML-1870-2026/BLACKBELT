@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Web - Interactive Particle System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #0a0a1a;
+        }
+
+        #stellarCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .control-toggle, .stats-toggle {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .control-toggle {
+            bottom: 30px;
+            right: 30px;
+        }
+
+        .stats-toggle {
+            top: 30px;
+            left: 30px;
+        }
+
+        .control-toggle:hover, .stats-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .control-toggle svg, .stats-toggle svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .control-panel, .stats-panel {
+            position: fixed;
+            top: 0;
+            width: 350px;
+            height: 100vh;
+            background: rgba(10, 10, 20, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            transition: 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .control-panel {
+            right: -350px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-panel {
+            left: -350px;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-panel.active {
+            right: 0;
+        }
+
+        .stats-panel.active {
+            left: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .control-panel h2, .stats-panel h2 {
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .control-buttons button {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .control-buttons button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .control-buttons button:active {
+            transform: translateY(0);
+        }
+
+        .performance-warning {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255, 165, 0, 0.2);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            border-radius: 4px;
+            font-size: 12px;
+            color: #ffb366;
+        }
+
+        .stat-category {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-category:last-child {
+            border-bottom: none;
+        }
+
+        .stat-category h3 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-value {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #4a90e2;
+            font-weight: 500;
+        }
+
+        .fps-value.good { color: #6bffc6; }
+        .fps-value.medium { color: #ffb366; }
+        .fps-value.poor { color: #ff6b9d; }
+
+        .mini-graph {
+            width: 100%;
+            height: 60px;
+            margin-top: 10px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .control-panel, .stats-panel {
+                width: 100%;
+            }
+
+            .control-panel {
+                right: -100%;
+            }
+
+            .stats-panel {
+                left: -100%;
+            }
+
+            .control-toggle {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .stats-toggle {
+                top: 20px;
+                left: 20px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="stellarCanvas"></canvas>
+
+    <!-- Control Toggle Button -->
+    <button id="controlToggle" class="control-toggle" aria-label="Toggle Controls">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2 5.2l-4.2-4.2m0-6l4.2-4.2"></path>
+        </svg>
+    </button>
+
+    <!-- Statistics Toggle Button -->
+    <button id="statsToggle" class="stats-toggle" aria-label="Toggle Statistics">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="20" x2="12" y2="10"></line>
+            <line x1="18" y1="20" x2="18" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="16"></line>
+        </svg>
+    </button>
+
+    <!-- Control Panel -->
+    <div id="controlPanel" class="control-panel">
+        <button class="close-btn" aria-label="Close Controls">×</button>
+        <h2>CONTROLS</h2>
+
+        <div class="control-group">
+            <label>
+                <span>Number of Nodes</span>
+                <span id="nodeCount">100</span>
+            </label>
+            <input type="range" id="particleSlider" min="20" max="1000" value="100" step="10">
+            <div class="performance-warning" id="perfWarning" style="display:none;">
+                ⚠ High particle count may affect performance
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>
+                <span>Connection Distance</span>
+                <span id="distanceValue">120</span>
+            </label>
+            <input type="range" id="distanceSlider" min="50" max="300" value="120" step="10">
+        </div>
+
+        <div class="control-group">
+            <label>
+                <span>Animation Speed</span>
+                <span id="speedValue">1.0</span>
+            </label>
+            <input type="range" id="speedSlider" min="0.1" max="2.0" value="1.0" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <label>Color Theme</label>
+            <select id="colorScheme">
+                <option value="cool">Cool Stellar</option>
+                <option value="warm">Warm Nebula</option>
+                <option value="cosmic">Cosmic Mix</option>
+                <option value="aurora">Aurora</option>
+                <option value="crimson">Crimson Void</option>
+                <option value="mono">Monochrome</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="glowToggle" checked>
+                Particle Glow
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label>
+                <input type="checkbox" id="connectionsToggle" checked>
+                Show Connections
+            </label>
+        </div>
+
+        <div class="control-buttons">
+            <button id="pauseBtn">Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div id="statsPanel" class="stats-panel">
+        <button class="close-btn stats-close-btn" aria-label="Close Statistics">×</button>
+        <h2>STATISTICS</h2>
+
+        <div class="stat-category">
+            <h3>Network Metrics</h3>
+            <div class="stat-item">
+                <span class="stat-label">Total Nodes:</span>
+                <span class="stat-value" id="statNodes">100</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Active Connections:</span>
+                <span class="stat-value" id="statConnections">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Avg Connections/Node:</span>
+                <span class="stat-value" id="statAvgConn">0.0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Connection Density:</span>
+                <span class="stat-value" id="statDensity">0%</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Max Connections:</span>
+                <span class="stat-value" id="statMaxConn">0</span>
+            </div>
+        </div>
+
+        <div class="stat-category">
+            <h3>Performance</h3>
+            <div class="stat-item">
+                <span class="stat-label">FPS:</span>
+                <span class="stat-value fps-value" id="statFPS">60</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Frame Time:</span>
+                <span class="stat-value" id="statFrameTime">16.7ms</span>
+            </div>
+            <canvas id="fpsGraph" class="mini-graph"></canvas>
+        </div>
+
+        <div class="stat-category">
+            <h3>System Info</h3>
+            <div class="stat-item">
+                <span class="stat-label">Canvas Size:</span>
+                <span class="stat-value" id="statCanvasSize">0x0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Connection Distance:</span>
+                <span class="stat-value" id="statConnDist">120px</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Animation Speed:</span>
+                <span class="stat-value" id="statAnimSpeed">1.0x</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Color Scheme:</span>
+                <span class="stat-value" id="statColorScheme">Cool Stellar</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Uptime:</span>
+                <span class="stat-value" id="statUptime">0s</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Color Schemes
+        const colorSchemes = {
+            cool: {
+                background: '#0a0a1a',
+                particles: ['#ffffff', '#cce7ff', '#b8d4ff'],
+                connections: '#4a90e2',
+                name: 'Cool Stellar'
+            },
+            warm: {
+                background: '#0d0a15',
+                particles: ['#ffd4a3', '#ffb366', '#ffffff'],
+                connections: '#ff8844',
+                name: 'Warm Nebula'
+            },
+            cosmic: {
+                background: '#050510',
+                particles: ['#b794f6', '#6eb5ff', '#ffffff', '#ffa8e0'],
+                connections: '#8b7fd6',
+                name: 'Cosmic Mix'
+            },
+            aurora: {
+                background: '#0a1a15',
+                particles: ['#6bffc6', '#4dd9a7', '#a8ffe8'],
+                connections: '#5de8b8',
+                name: 'Aurora'
+            },
+            crimson: {
+                background: '#150a0f',
+                particles: ['#ff6b9d', '#ff8fab', '#ffa8ba'],
+                connections: '#ff7a9f',
+                name: 'Crimson Void'
+            },
+            mono: {
+                background: '#0f0f0f',
+                particles: ['#ffffff', '#cccccc', '#e8e8e8'],
+                connections: '#888888',
+                name: 'Monochrome'
+            }
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('stellarCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationId;
+        let isPaused = false;
+        let spatialGrid = new Map();
+        let gridCellSize = 150;
+
+        // FPS Graph setup
+        const fpsGraphCanvas = document.getElementById('fpsGraph');
+        const fpsGraphCtx = fpsGraphCanvas.getContext('2d');
+        fpsGraphCanvas.width = 290;
+        fpsGraphCanvas.height = 60;
+
+        // Settings
+        let settings = {
+            particleCount: 100,
+            connectionDistance: 120,
+            animationSpeed: 1.0,
+            colorScheme: 'cool',
+            showGlow: true,
+            showConnections: true
+        };
+
+        // Statistics
+        let stats = {
+            fps: 60,
+            frameTime: 16.7,
+            activeConnections: 0,
+            avgConnectionsPerNode: 0,
+            connectionDensity: 0,
+            maxConnections: 0,
+            fpsHistory: [],
+            startTime: Date.now(),
+            lastFrameTime: performance.now(),
+            frameCount: 0,
+            lastFpsUpdate: 0
+        };
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gridCellSize = Math.max(settings.connectionDistance, 150);
+        }
+
+        // Spatial partitioning functions
+        function getGridKey(x, y) {
+            const cellX = Math.floor(x / gridCellSize);
+            const cellY = Math.floor(y / gridCellSize);
+            return `${cellX},${cellY}`;
+        }
+
+        function updateSpatialGrid() {
+            spatialGrid.clear();
+            particles.forEach(particle => {
+                const key = getGridKey(particle.x, particle.y);
+                if (!spatialGrid.has(key)) {
+                    spatialGrid.set(key, []);
+                }
+                spatialGrid.get(key).push(particle);
+            });
+        }
+
+        function getNearbyParticles(particle) {
+            const cellX = Math.floor(particle.x / gridCellSize);
+            const cellY = Math.floor(particle.y / gridCellSize);
+            const nearby = [];
+
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const key = `${cellX + dx},${cellY + dy}`;
+                    if (spatialGrid.has(key)) {
+                        nearby.push(...spatialGrid.get(key));
+                    }
+                }
+            }
+
+            return nearby;
+        }
+
+        // Particle Class
+        class Particle {
+            constructor(x, y) {
+                this.x = x || Math.random() * canvas.width;
+                this.y = y || Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2 + 2;
+                this.opacity = Math.random() * 0.4 + 0.6;
+                this.colorIndex = Math.floor(Math.random() * colorSchemes[settings.colorScheme].particles.length);
+                this.connections = 0;
+            }
+
+            update() {
+                this.x += this.vx * settings.animationSpeed;
+                this.y += this.vy * settings.animationSpeed;
+
+                // Wrap around edges
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+
+            draw() {
+                const scheme = colorSchemes[settings.colorScheme];
+                const color = scheme.particles[this.colorIndex % scheme.particles.length];
+
+                // Adaptive glow based on particle count
+                const shouldDrawGlow = settings.showGlow && (
+                    settings.particleCount < 200 ||
+                    (settings.particleCount < 500 && this.opacity > 0.8)
+                );
+
+                // Draw glow
+                if (shouldDrawGlow) {
+                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 3);
+                    gradient.addColorStop(0, color + Math.floor(this.opacity * 255).toString(16).padStart(2, '0'));
+                    gradient.addColorStop(0.5, color + '40');
+                    gradient.addColorStop(1, color + '00');
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Draw particle (smaller size for high counts)
+                const displayRadius = settings.particleCount > 700 ? this.radius * 0.7 : this.radius;
+                ctx.fillStyle = color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, displayRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Initialize particles
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < settings.particleCount; i++) {
+                particles.push(new Particle());
+            }
+            updateSpatialGrid();
+        }
+
+        // Calculate distance
+        function distance(p1, p2) {
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // Draw connections with spatial partitioning
+        function drawConnections() {
+            if (!settings.showConnections) {
+                stats.activeConnections = 0;
+                return;
+            }
+
+            const scheme = colorSchemes[settings.colorScheme];
+            let totalConnections = 0;
+            let maxConn = 0;
+
+            // Reset connection counts
+            particles.forEach(p => p.connections = 0);
+
+            particles.forEach(particle => {
+                const nearby = getNearbyParticles(particle);
+                let connections = 0;
+
+                nearby.forEach(other => {
+                    if (particle === other || connections >= 6) return;
+
+                    const dist = distance(particle, other);
+
+                    if (dist < settings.connectionDistance) {
+                        const opacity = 1 - (dist / settings.connectionDistance);
+
+                        ctx.strokeStyle = scheme.connections;
+                        ctx.globalAlpha = opacity * 0.3;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particle.x, particle.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.stroke();
+
+                        connections++;
+                        particle.connections++;
+                    }
+                });
+
+                totalConnections += connections;
+                maxConn = Math.max(maxConn, particle.connections);
+            });
+
+            ctx.globalAlpha = 1;
+            stats.activeConnections = Math.floor(totalConnections / 2);
+            stats.maxConnections = maxConn;
+            stats.avgConnectionsPerNode = (totalConnections / particles.length).toFixed(2);
+
+            const maxPossibleConnections = (particles.length * (particles.length - 1)) / 2;
+            stats.connectionDensity = ((stats.activeConnections / maxPossibleConnections) * 100).toFixed(2);
+        }
+
+        // Update statistics
+        function updateStatistics(currentTime) {
+            // FPS calculation
+            const deltaTime = currentTime - stats.lastFrameTime;
+            stats.frameTime = deltaTime;
+            stats.frameCount++;
+
+            if (currentTime - stats.lastFpsUpdate >= 100) {
+                stats.fps = Math.round(1000 / deltaTime);
+                stats.lastFpsUpdate = currentTime;
+
+                // Update FPS history
+                stats.fpsHistory.push(stats.fps);
+                if (stats.fpsHistory.length > 50) {
+                    stats.fpsHistory.shift();
+                }
+
+                // Draw FPS graph
+                drawFpsGraph();
+            }
+
+            stats.lastFrameTime = currentTime;
+
+            // Update statistics panel (throttled to ~15fps)
+            if (stats.frameCount % 4 === 0) {
+                updateStatsDisplay();
+            }
+        }
+
+        // Draw FPS graph
+        function drawFpsGraph() {
+            fpsGraphCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            fpsGraphCtx.fillRect(0, 0, fpsGraphCanvas.width, fpsGraphCanvas.height);
+
+            if (stats.fpsHistory.length < 2) return;
+
+            const barWidth = fpsGraphCanvas.width / stats.fpsHistory.length;
+            const maxFps = 60;
+
+            stats.fpsHistory.forEach((fps, i) => {
+                const height = (fps / maxFps) * fpsGraphCanvas.height;
+                const x = i * barWidth;
+                const y = fpsGraphCanvas.height - height;
+
+                let color;
+                if (fps >= 50) color = '#6bffc6';
+                else if (fps >= 30) color = '#ffb366';
+                else color = '#ff6b9d';
+
+                fpsGraphCtx.fillStyle = color;
+                fpsGraphCtx.fillRect(x, y, barWidth - 1, height);
+            });
+        }
+
+        // Update statistics display
+        function updateStatsDisplay() {
+            document.getElementById('statNodes').textContent = particles.length;
+            document.getElementById('statConnections').textContent = stats.activeConnections;
+            document.getElementById('statAvgConn').textContent = stats.avgConnectionsPerNode;
+            document.getElementById('statDensity').textContent = stats.connectionDensity + '%';
+            document.getElementById('statMaxConn').textContent = stats.maxConnections;
+
+            const fpsElement = document.getElementById('statFPS');
+            fpsElement.textContent = stats.fps;
+            fpsElement.className = 'stat-value fps-value';
+            if (stats.fps >= 50) fpsElement.classList.add('good');
+            else if (stats.fps >= 30) fpsElement.classList.add('medium');
+            else fpsElement.classList.add('poor');
+
+            document.getElementById('statFrameTime').textContent = stats.frameTime.toFixed(1) + 'ms';
+            document.getElementById('statCanvasSize').textContent = `${canvas.width}x${canvas.height}`;
+            document.getElementById('statConnDist').textContent = settings.connectionDistance + 'px';
+            document.getElementById('statAnimSpeed').textContent = settings.animationSpeed.toFixed(1) + 'x';
+            document.getElementById('statColorScheme').textContent = colorSchemes[settings.colorScheme].name;
+
+            const uptime = Math.floor((Date.now() - stats.startTime) / 1000);
+            const minutes = Math.floor(uptime / 60);
+            const seconds = uptime % 60;
+            document.getElementById('statUptime').textContent = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+        }
+
+        // Animation loop
+        function animate(currentTime) {
+            const scheme = colorSchemes[settings.colorScheme];
+            ctx.fillStyle = scheme.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!isPaused) {
+                particles.forEach(particle => particle.update());
+                updateSpatialGrid();
+            }
+
+            drawConnections();
+            particles.forEach(particle => particle.draw());
+
+            updateStatistics(currentTime);
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Control Panel Logic
+        const controlToggle = document.getElementById('controlToggle');
+        const controlPanel = document.getElementById('controlPanel');
+        const closeBtn = document.querySelector('.close-btn');
+        const particleSlider = document.getElementById('particleSlider');
+        const distanceSlider = document.getElementById('distanceSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const colorSchemeSelect = document.getElementById('colorScheme');
+        const glowToggle = document.getElementById('glowToggle');
+        const connectionsToggle = document.getElementById('connectionsToggle');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const perfWarning = document.getElementById('perfWarning');
+
+        // Statistics Panel Logic
+        const statsToggle = document.getElementById('statsToggle');
+        const statsPanel = document.getElementById('statsPanel');
+        const statsCloseBtn = document.querySelector('.stats-close-btn');
+
+        // Toggle control panel
+        controlToggle.addEventListener('click', () => {
+            controlPanel.classList.add('active');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            controlPanel.classList.remove('active');
+        });
+
+        // Toggle statistics panel
+        statsToggle.addEventListener('click', () => {
+            statsPanel.classList.add('active');
+        });
+
+        statsCloseBtn.addEventListener('click', () => {
+            statsPanel.classList.remove('active');
+        });
+
+        // Particle count slider
+        particleSlider.addEventListener('input', (e) => {
+            const newCount = parseInt(e.target.value);
+            document.getElementById('nodeCount').textContent = newCount;
+
+            // Show performance warning
+            if (newCount >= 500) {
+                perfWarning.style.display = 'block';
+            } else {
+                perfWarning.style.display = 'none';
+            }
+
+            if (newCount > particles.length) {
+                for (let i = particles.length; i < newCount; i++) {
+                    particles.push(new Particle());
+                }
+            } else {
+                particles = particles.slice(0, newCount);
+            }
+            settings.particleCount = newCount;
+            updateSpatialGrid();
+        });
+
+        // Connection distance slider
+        distanceSlider.addEventListener('input', (e) => {
+            settings.connectionDistance = parseInt(e.target.value);
+            document.getElementById('distanceValue').textContent = e.target.value;
+            gridCellSize = Math.max(settings.connectionDistance, 150);
+            updateSpatialGrid();
+        });
+
+        // Animation speed slider
+        speedSlider.addEventListener('input', (e) => {
+            settings.animationSpeed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = e.target.value;
+        });
+
+        // Color scheme selector
+        colorSchemeSelect.addEventListener('change', (e) => {
+            settings.colorScheme = e.target.value;
+            particles.forEach(particle => {
+                particle.colorIndex = Math.floor(Math.random() * colorSchemes[settings.colorScheme].particles.length);
+            });
+        });
+
+        // Glow toggle
+        glowToggle.addEventListener('change', (e) => {
+            settings.showGlow = e.target.checked;
+        });
+
+        // Connections toggle
+        connectionsToggle.addEventListener('change', (e) => {
+            settings.showConnections = e.target.checked;
+        });
+
+        // Pause button
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+        });
+
+        // Reset button
+        resetBtn.addEventListener('click', () => {
+            settings = {
+                particleCount: 100,
+                connectionDistance: 120,
+                animationSpeed: 1.0,
+                colorScheme: 'cool',
+                showGlow: true,
+                showConnections: true
+            };
+
+            particleSlider.value = 100;
+            distanceSlider.value = 120;
+            speedSlider.value = 1.0;
+            colorSchemeSelect.value = 'cool';
+            glowToggle.checked = true;
+            connectionsToggle.checked = true;
+            isPaused = false;
+            pauseBtn.textContent = 'Pause';
+            perfWarning.style.display = 'none';
+
+            document.getElementById('nodeCount').textContent = '100';
+            document.getElementById('distanceValue').textContent = '120';
+            document.getElementById('speedValue').textContent = '1.0';
+
+            stats.startTime = Date.now();
+            stats.fpsHistory = [];
+
+            initParticles();
+        });
+
+        // Initialize
+        resizeCanvas();
+        initParticles();
+        animate(performance.now());
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            updateSpatialGrid();
+        });
+
+        // Respect reduced motion preference
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            settings.animationSpeed = 0.1;
+        }
+    </script>
+</body>
+</html>
