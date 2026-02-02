@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Snake</title>
+  <style>
+    /* ===== COSMIC THEME CSS ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    /* Background stars animation */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 60% 70%, white, transparent),
+        radial-gradient(1px 1px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(2px 2px at 90% 60%, white, transparent),
+        radial-gradient(1px 1px at 30% 80%, white, transparent);
+      background-size: 200% 200%;
+      animation: twinkle 8s ease-in-out infinite;
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.3; }
+    }
+
+    .game-container {
+      background: rgba(10, 14, 39, 0.9);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 0 50px rgba(74, 144, 226, 0.3);
+      max-width: 1400px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      backdrop-filter: blur(10px);
+    }
+
+    .game-layout {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 200px;
+    }
+
+    .sidebar.left {
+      align-items: flex-end;
+    }
+
+    .sidebar.right {
+      align-items: flex-start;
+    }
+
+    @media (max-width: 1200px) {
+      .game-layout {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-width: 700px;
+      }
+
+      .sidebar.left,
+      .sidebar.right {
+        align-items: center;
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 3em;
+      background: linear-gradient(90deg, #4a90e2, #7b68ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      text-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+    }
+
+    .scores {
+      display: flex;
+      justify-content: space-around;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .scores span {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      background: rgba(74, 144, 226, 0.2);
+      border-radius: 10px;
+      border: 1px solid rgba(74, 144, 226, 0.4);
+      font-weight: bold;
+    }
+
+    /* Progression Bar */
+    .progression-bar {
+      position: relative;
+      width: 100%;
+      height: 35px;
+      background: rgba(26, 31, 58, 0.8);
+      border-radius: 18px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 2px solid rgba(74, 144, 226, 0.3);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4a90e2, #7b68ee);
+      border-radius: 15px;
+      width: 0%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 20px rgba(74, 144, 226, 0.6);
+    }
+
+    .next-unlock {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.9em;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+    }
+
+    /* Canvas */
+    #game-canvas {
+      display: block;
+      margin: 0 auto 20px;
+      border: 3px solid rgba(74, 144, 226, 0.5);
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(74, 144, 226, 0.4);
+      background: #0a0e27;
+    }
+
+    /* Canvas Container */
+    .canvas-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* Performance Stats */
+    .performance-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9em;
+      opacity: 0.7;
+      width: 100%;
+    }
+
+    .performance-stats span {
+      padding: 8px 12px;
+      background: rgba(26, 31, 58, 0.6);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    @media (max-width: 1200px) {
+      .performance-stats {
+        flex-direction: row;
+        justify-content: space-around;
+      }
+    }
+
+    /* Feature Status */
+    .feature-status {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      .feature-status {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .feature {
+        flex: 1;
+        min-width: 150px;
+      }
+    }
+
+    .feature {
+      background: rgba(26, 31, 58, 0.6);
+      padding: 12px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      border: 2px solid rgba(74, 144, 226, 0.2);
+      transition: all 0.3s ease;
+      min-width: 200px;
+    }
+
+    @media (max-width: 1200px) {
+      .feature {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    .feature.unlocked {
+      border-color: rgba(74, 144, 226, 0.8);
+      background: rgba(74, 144, 226, 0.2);
+      box-shadow: 0 0 20px rgba(74, 144, 226, 0.4);
+    }
+
+    .feature .icon {
+      font-size: 2em;
+      flex-shrink: 0;
+    }
+
+    .feature .name {
+      font-size: 0.9em;
+      font-weight: bold;
+      flex: 1;
+    }
+
+    .feature .status {
+      font-size: 0.75em;
+      padding: 4px 10px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    .feature .status.unlocked {
+      background: rgba(74, 144, 226, 0.4);
+      color: #fff;
+    }
+
+    .feature .status.locked {
+      opacity: 0.5;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      .controls {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4a90e2, #7b68ee);
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+      width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      button {
+        width: auto;
+      }
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(74, 144, 226, 0.6);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    select {
+      padding: 14px 20px;
+      font-size: 1.1em;
+      border: 2px solid rgba(74, 144, 226, 0.5);
+      border-radius: 10px;
+      background: rgba(26, 31, 58, 0.8);
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      select {
+        width: auto;
+      }
+    }
+
+    select:hover {
+      border-color: rgba(74, 144, 226, 0.8);
+    }
+
+    /* Section Headers */
+    .section-header {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #4a90e2;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* Instructions */
+    .instructions {
+      text-align: center;
+      font-size: 0.9em;
+      opacity: 0.8;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+
+    .instructions h3 {
+      margin-bottom: 10px;
+      color: #4a90e2;
+    }
+
+    /* Unlock Notification */
+    .unlock-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: linear-gradient(135deg, #4a90e2, #7b68ee);
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(74, 144, 226, 0.8);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .unlock-notification.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .unlock-notification h2 {
+      font-size: 2em;
+      margin-bottom: 15px;
+    }
+
+    .unlock-notification p {
+      font-size: 1.3em;
+    }
+
+    /* Game Over Overlay */
+    .game-over-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .game-over-overlay.show {
+      display: flex;
+    }
+
+    .game-over-content {
+      background: linear-gradient(135deg, #1a1f3a, #0a0e27);
+      padding: 50px;
+      border-radius: 20px;
+      text-align: center;
+      border: 3px solid rgba(74, 144, 226, 0.6);
+      box-shadow: 0 0 50px rgba(74, 144, 226, 0.5);
+    }
+
+    .game-over-content h2 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #4a90e2, #7b68ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .game-over-content p {
+      font-size: 1.5em;
+      margin-bottom: 30px;
+    }
+
+    /* Pulse animation for food */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    /* Shimmer effect for unlocks */
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+
+    .shimmer {
+      animation: shimmer 2s infinite linear;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+      );
+      background-size: 1000px 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <div class="header">
+      <h1>Cosmic Snake</h1>
+      <div class="scores">
+        <span id="current-score">Score: 0</span>
+        <span id="high-score">High Score: 0</span>
+        <span id="current-speed">Speed: 100ms</span>
+      </div>
+    </div>
+
+    <div class="progression-bar">
+      <div class="progress-fill"></div>
+      <span class="next-unlock">Next: Particle Trail (50pts)</span>
+    </div>
+
+    <div class="game-layout">
+      <!-- Left Sidebar: Features -->
+      <div class="sidebar left">
+        <div class="section-header">Feature Unlocks</div>
+        <div class="feature-status">
+          <div class="feature" id="feature-trail">
+            <span class="icon">✨</span>
+            <span class="name">Particle Trail</span>
+            <span class="status locked">Locked</span>
+          </div>
+          <div class="feature" id="feature-orbital">
+            <span class="icon">🌀</span>
+            <span class="name">Orbital Food</span>
+            <span class="status locked">Locked</span>
+          </div>
+          <div class="feature" id="feature-portals">
+            <span class="icon">🌊</span>
+            <span class="name">Portals</span>
+            <span class="status locked">Locked</span>
+          </div>
+          <div class="feature" id="feature-zones">
+            <span class="icon">⚡</span>
+            <span class="name">Time Zones</span>
+            <span class="status locked">Locked</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Canvas -->
+      <div class="canvas-container">
+        <canvas id="game-canvas" width="700" height="700"></canvas>
+      </div>
+
+      <!-- Right Sidebar: Controls & Stats -->
+      <div class="sidebar right">
+        <div class="section-header">Game Controls</div>
+        <div class="controls">
+          <button id="start-btn">Start Game</button>
+          <button id="pause-btn" disabled>Pause</button>
+          <select id="speed-select">
+            <option value="150">Easy</option>
+            <option value="100" selected>Medium</option>
+            <option value="50">Hard</option>
+          </select>
+        </div>
+
+        <div class="section-header" style="margin-top: 20px;">Performance</div>
+        <div class="performance-stats">
+          <span id="fps">FPS: 60</span>
+          <span id="particles">Particles: 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="instructions">
+      <h3>Controls</h3>
+      <p>Arrow Keys or WASD to move | Spacebar to pause | Enter to start/restart</p>
+      <p style="margin-top: 10px; font-size: 0.85em;">Unlock new features as you score: 50, 100, 150, 200 points!</p>
+    </div>
+  </div>
+
+  <div class="unlock-notification" id="unlock-notify">
+    <h2>Feature Unlocked!</h2>
+    <p id="unlock-message"></p>
+  </div>
+
+  <div class="game-over-overlay" id="game-over">
+    <div class="game-over-content">
+      <h2>Game Over</h2>
+      <p id="final-score">Final Score: 0</p>
+      <p id="high-score-message"></p>
+      <button id="restart-btn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== CONSTANTS AND CONFIGURATION =====
+    const GRID_SIZE = 20;
+    const CELL_SIZE = 35;
+    const CANVAS_SIZE = GRID_SIZE * CELL_SIZE;
+
+    const UNLOCK_THRESHOLDS = {
+      PARTICLE_TRAIL: 50,
+      ORBITAL_FOOD: 100,
+      PORTALS: 150,
+      TIME_DILATION: 200
+    };
+
+    const COLORS = {
+      background: '#0a0e27',
+      gridLine: '#1a1f3a',
+      snakeBody: '#4a90e2',
+      snakeBodyEnd: '#7b68ee',
+      food: '#ffe66d',
+      particleTrail: '#4a90e2',
+      portal: '#00ffff',
+      slowZone: 'rgba(187, 225, 250, 0.2)',
+      fastZone: 'rgba(255, 107, 107, 0.2)',
+      constellation: '#ffffff'
+    };
+
+    // ===== GAME STATE =====
+    const gameState = {
+      score: 0,
+      highScore: 0,
+      isRunning: false,
+      isPaused: false,
+      baseSpeed: 100,
+      currentSpeed: 100,
+      speedPaused: false,
+      frameCount: 0,
+      lastFrameTime: 0,
+      fps: 60,
+      unlockedFeatures: {
+        particleTrail: false,
+        orbitalFood: false,
+        portals: false,
+        timeDilation: false
+      }
+    };
+
+    // ===== GAME OBJECTS =====
+    let snake = [];
+    let direction = { x: 1, y: 0 };
+    let nextDirection = { x: 1, y: 0 };
+    let food = { x: 0, y: 0, isOrbital: false, orbitAngle: 0 };
+    let particleTrail = [];
+    let portals = [];
+    let timeDilationZones = [];
+    let constellationEffect = {
+      active: false,
+      center: { x: 0, y: 0 },
+      connections: [],
+      particles: [],
+      startTime: 0,
+      duration: 1000
+    };
+
+    // ===== DOM ELEMENTS =====
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('start-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const speedSelect = document.getElementById('speed-select');
+    const currentScoreEl = document.getElementById('current-score');
+    const highScoreEl = document.getElementById('high-score');
+    const currentSpeedEl = document.getElementById('current-speed');
+    const fpsEl = document.getElementById('fps');
+    const particlesEl = document.getElementById('particles');
+    const progressFill = document.querySelector('.progress-fill');
+    const nextUnlockEl = document.querySelector('.next-unlock');
+    const unlockNotify = document.getElementById('unlock-notify');
+    const unlockMessage = document.getElementById('unlock-message');
+    const gameOverOverlay = document.getElementById('game-over');
+    const finalScoreEl = document.getElementById('final-score');
+    const highScoreMessageEl = document.getElementById('high-score-message');
+
+    // ===== INITIALIZATION =====
+    function init() {
+      loadHighScore();
+      initSnake();
+      spawnFood();
+      setupEventListeners();
+      updateUI();
+      drawGrid();
+      drawSnake();
+      drawFood();
+    }
+
+    function initSnake() {
+      snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+      ];
+      direction = { x: 1, y: 0 };
+      nextDirection = { x: 1, y: 0 };
+    }
+
+    function resetGame() {
+      gameState.score = 0;
+      gameState.isRunning = false;
+      gameState.isPaused = false;
+      gameState.speedPaused = false;
+      gameState.unlockedFeatures = {
+        particleTrail: false,
+        orbitalFood: false,
+        portals: false,
+        timeDilation: false
+      };
+      particleTrail = [];
+      portals = [];
+      timeDilationZones = [];
+      constellationEffect.active = false;
+      initSnake();
+      spawnFood();
+      updateSpeed();
+      updateUI();
+      updateFeatureUI();
+      gameOverOverlay.classList.remove('show');
+    }
+
+    // ===== GAME LOOP =====
+    let gameLoopInterval;
+
+    function startGame() {
+      if (gameState.isRunning) return;
+
+      resetGame();
+      gameState.isRunning = true;
+      pauseBtn.disabled = false;
+      startBtn.textContent = 'Restart';
+
+      gameLoopInterval = setInterval(gameLoop, gameState.currentSpeed);
+      requestAnimationFrame(renderLoop);
+    }
+
+    function gameLoop() {
+      if (!gameState.isRunning || gameState.isPaused) return;
+
+      // Update direction from input queue
+      direction = { ...nextDirection };
+
+      // Move snake
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      // Check wall collision
+      if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+        gameOver();
+        return;
+      }
+
+      // Check self collision
+      for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          gameOver();
+          return;
+        }
+      }
+
+      // Check portal collision
+      if (gameState.unlockedFeatures.portals) {
+        checkPortalCollision(head);
+      }
+
+      // Add new head
+      snake.unshift(head);
+
+      // Check food collision
+      if (head.x === food.x && head.y === food.y) {
+        gameState.score += 10;
+        triggerConstellationEffect(food.x, food.y);
+        spawnFood();
+        checkFeatureUnlocks();
+        updateSpeed();
+        updateUI();
+      } else {
+        // Remove tail (or add to particle trail)
+        const tail = snake.pop();
+        if (gameState.unlockedFeatures.particleTrail) {
+          addParticle(tail.x, tail.y);
+        }
+      }
+
+      // Update orbital food
+      if (gameState.unlockedFeatures.orbitalFood && food.isOrbital) {
+        updateOrbitalFood();
+      }
+
+      // Update time dilation zones
+      if (gameState.unlockedFeatures.timeDilation) {
+        checkTimeDilationZones(head);
+      }
+
+      // Reset game loop with new speed
+      clearInterval(gameLoopInterval);
+      gameLoopInterval = setInterval(gameLoop, gameState.currentSpeed);
+    }
+
+    function renderLoop(timestamp) {
+      if (!gameState.lastFrameTime) gameState.lastFrameTime = timestamp;
+      const deltaTime = timestamp - gameState.lastFrameTime;
+
+      if (deltaTime >= 16.67) { // ~60 FPS
+        gameState.fps = Math.round(1000 / deltaTime);
+        gameState.lastFrameTime = timestamp;
+
+        // Clear canvas
+        ctx.fillStyle = COLORS.background;
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        // Draw grid
+        drawGrid();
+
+        // Draw time dilation zones
+        if (gameState.unlockedFeatures.timeDilation) {
+          drawTimeDilationZones();
+        }
+
+        // Draw portals
+        if (gameState.unlockedFeatures.portals) {
+          drawPortals();
+        }
+
+        // Draw particle trail
+        if (gameState.unlockedFeatures.particleTrail) {
+          updateAndDrawParticles();
+        }
+
+        // Draw orbital food path
+        if (gameState.unlockedFeatures.orbitalFood && food.isOrbital) {
+          drawOrbitalPath();
+        }
+
+        // Draw food
+        drawFood();
+
+        // Draw snake
+        drawSnake();
+
+        // Draw constellation effect
+        if (constellationEffect.active) {
+          updateAndDrawConstellation();
+        }
+
+        // Update performance stats
+        fpsEl.textContent = `FPS: ${gameState.fps}`;
+        particlesEl.textContent = `Particles: ${particleTrail.length + constellationEffect.particles.length}`;
+      }
+
+      if (gameState.isRunning) {
+        requestAnimationFrame(renderLoop);
+      }
+    }
+
+    // ===== SNAKE FUNCTIONS =====
+    function drawSnake() {
+      snake.forEach((segment, index) => {
+        const x = segment.x * CELL_SIZE;
+        const y = segment.y * CELL_SIZE;
+
+        // Create gradient
+        const gradient = ctx.createRadialGradient(
+          x + CELL_SIZE / 2, y + CELL_SIZE / 2, 2,
+          x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 2
+        );
+
+        const colorPosition = index / snake.length;
+        gradient.addColorStop(0, COLORS.snakeBody);
+        gradient.addColorStop(1, COLORS.snakeBodyEnd);
+
+        // Draw segment with glow
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = COLORS.snakeBody;
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 2 - 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Draw connection to next segment
+        if (index < snake.length - 1) {
+          const nextSegment = snake[index + 1];
+          ctx.strokeStyle = COLORS.snakeBody;
+          ctx.lineWidth = 4;
+          ctx.globalAlpha = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+          ctx.lineTo(
+            nextSegment.x * CELL_SIZE + CELL_SIZE / 2,
+            nextSegment.y * CELL_SIZE + CELL_SIZE / 2
+          );
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+      });
+    }
+
+    // ===== FOOD FUNCTIONS =====
+    function spawnFood() {
+      let validPosition = false;
+      let attempts = 0;
+
+      while (!validPosition && attempts < 100) {
+        food.x = Math.floor(Math.random() * GRID_SIZE);
+        food.y = Math.floor(Math.random() * GRID_SIZE);
+
+        // Check if position is occupied by snake
+        validPosition = !snake.some(segment =>
+          segment.x === food.x && segment.y === food.y
+        );
+
+        // Check if position overlaps with portals
+        if (validPosition && gameState.unlockedFeatures.portals) {
+          validPosition = !portals.some(portal =>
+            (portal.entry.x === food.x && portal.entry.y === food.y) ||
+            (portal.exit.x === food.x && portal.exit.y === food.y)
+          );
+        }
+
+        // Check if position overlaps with time dilation zones
+        if (validPosition && gameState.unlockedFeatures.timeDilation) {
+          validPosition = !timeDilationZones.some(zone =>
+            food.x >= zone.x && food.x < zone.x + zone.width &&
+            food.y >= zone.y && food.y < zone.y + zone.height
+          );
+        }
+
+        attempts++;
+      }
+
+      // Configure orbital food if unlocked
+      if (gameState.unlockedFeatures.orbitalFood) {
+        food.isOrbital = true;
+        food.orbitCenter = { x: food.x, y: food.y };
+        food.orbitRadius = 3 + Math.random() * 4; // 3-7 cells
+        food.orbitAngle = 0;
+        food.orbitSpeed = 0.03 + Math.random() * 0.04; // 0.03-0.07
+      } else {
+        food.isOrbital = false;
+      }
+    }
+
+    function updateOrbitalFood() {
+      food.orbitAngle += food.orbitSpeed;
+      food.x = Math.round(food.orbitCenter.x + food.orbitRadius * Math.cos(food.orbitAngle));
+      food.y = Math.round(food.orbitCenter.y + food.orbitRadius * Math.sin(food.orbitAngle));
+
+      // Keep food within bounds
+      food.x = Math.max(0, Math.min(GRID_SIZE - 1, food.x));
+      food.y = Math.max(0, Math.min(GRID_SIZE - 1, food.y));
+    }
+
+    function drawFood() {
+      const x = food.x * CELL_SIZE;
+      const y = food.y * CELL_SIZE;
+
+      // Pulsing animation
+      const pulseScale = 1 + Math.sin(Date.now() / 200) * 0.15;
+
+      // Draw glow
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = COLORS.food;
+
+      // Draw food
+      ctx.fillStyle = COLORS.food;
+      ctx.beginPath();
+      ctx.arc(
+        x + CELL_SIZE / 2,
+        y + CELL_SIZE / 2,
+        (CELL_SIZE / 2 - 3) * pulseScale,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+    }
+
+    function drawOrbitalPath() {
+      const centerX = food.orbitCenter.x * CELL_SIZE + CELL_SIZE / 2;
+      const centerY = food.orbitCenter.y * CELL_SIZE + CELL_SIZE / 2;
+      const radius = food.orbitRadius * CELL_SIZE;
+
+      ctx.strokeStyle = 'rgba(255, 230, 109, 0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // ===== PARTICLE TRAIL SYSTEM =====
+    function addParticle(x, y) {
+      if (particleTrail.length >= 50) {
+        particleTrail.shift();
+      }
+
+      particleTrail.push({
+        x: x,
+        y: y,
+        opacity: 1.0,
+        size: 3,
+        life: 60 // frames
+      });
+    }
+
+    function updateAndDrawParticles() {
+      particleTrail = particleTrail.filter(particle => {
+        particle.life--;
+        particle.opacity = particle.life / 60;
+        particle.size = 3 * particle.opacity;
+
+        // Draw particle
+        const x = particle.x * CELL_SIZE + CELL_SIZE / 2;
+        const y = particle.y * CELL_SIZE + CELL_SIZE / 2;
+
+        ctx.globalAlpha = particle.opacity;
+        ctx.fillStyle = COLORS.particleTrail;
+        ctx.beginPath();
+        ctx.arc(x, y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        return particle.life > 0;
+      });
+    }
+
+    // ===== CONSTELLATION EFFECT =====
+    function triggerConstellationEffect(centerX, centerY) {
+      constellationEffect.active = true;
+      constellationEffect.center = { x: centerX, y: centerY };
+      constellationEffect.startTime = Date.now();
+      constellationEffect.connections = [];
+      constellationEffect.particles = [];
+
+      // Create connections to nearby snake segments
+      snake.forEach(segment => {
+        const distance = Math.sqrt(
+          Math.pow(segment.x - centerX, 2) +
+          Math.pow(segment.y - centerY, 2)
+        );
+
+        if (distance <= 8) {
+          constellationEffect.connections.push({
+            start: { x: centerX, y: centerY },
+            end: { x: segment.x, y: segment.y },
+            maxOpacity: 0.8,
+            currentOpacity: 0.8
+          });
+        }
+      });
+
+      // Spawn burst particles
+      for (let i = 0; i < 12; i++) {
+        const angle = (Math.PI * 2 * i) / 12;
+        constellationEffect.particles.push({
+          x: centerX * CELL_SIZE + CELL_SIZE / 2,
+          y: centerY * CELL_SIZE + CELL_SIZE / 2,
+          vx: Math.cos(angle) * 2,
+          vy: Math.sin(angle) * 2,
+          opacity: 1,
+          size: 3
+        });
+      }
+    }
+
+    function updateAndDrawConstellation() {
+      const elapsed = Date.now() - constellationEffect.startTime;
+      const progress = elapsed / constellationEffect.duration;
+
+      if (progress >= 1) {
+        constellationEffect.active = false;
+        constellationEffect.connections = [];
+        constellationEffect.particles = [];
+        return;
+      }
+
+      // Ease out opacity
+      const fadeOpacity = 1 - Math.pow(progress, 2);
+
+      // Draw connections
+      constellationEffect.connections.forEach(conn => {
+        conn.currentOpacity = conn.maxOpacity * fadeOpacity;
+
+        ctx.strokeStyle = COLORS.constellation;
+        ctx.globalAlpha = conn.currentOpacity;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(
+          conn.start.x * CELL_SIZE + CELL_SIZE / 2,
+          conn.start.y * CELL_SIZE + CELL_SIZE / 2
+        );
+        ctx.lineTo(
+          conn.end.x * CELL_SIZE + CELL_SIZE / 2,
+          conn.end.y * CELL_SIZE + CELL_SIZE / 2
+        );
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      });
+
+      // Update and draw particles
+      constellationEffect.particles.forEach(particle => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.opacity = fadeOpacity;
+
+        ctx.globalAlpha = particle.opacity;
+        ctx.fillStyle = COLORS.food;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    // ===== PORTAL SYSTEM =====
+    function spawnPortalPair() {
+      if (portals.length >= 2) return; // Max 2 portal pairs
+
+      let entry, exit;
+      let validPlacement = false;
+      let attempts = 0;
+
+      while (!validPlacement && attempts < 50) {
+        entry = {
+          x: Math.floor(Math.random() * GRID_SIZE),
+          y: Math.floor(Math.random() * GRID_SIZE)
+        };
+
+        exit = {
+          x: Math.floor(Math.random() * GRID_SIZE),
+          y: Math.floor(Math.random() * GRID_SIZE)
+        };
+
+        // Check minimum distance
+        const distance = Math.sqrt(
+          Math.pow(exit.x - entry.x, 2) + Math.pow(exit.y - entry.y, 2)
+        );
+
+        validPlacement = distance >= 5;
+
+        // Check snake collision
+        if (validPlacement) {
+          validPlacement = !snake.some(segment =>
+            (segment.x === entry.x && segment.y === entry.y) ||
+            (segment.x === exit.x && segment.y === exit.y)
+          );
+        }
+
+        attempts++;
+      }
+
+      if (validPlacement) {
+        portals.push({
+          entry: entry,
+          exit: exit,
+          color: COLORS.portal,
+          spawnTime: Date.now(),
+          lifetime: 45000, // 45 seconds
+          particles: []
+        });
+
+        // Initialize swirling particles
+        for (let i = 0; i < 15; i++) {
+          portals[portals.length - 1].particles.push({
+            angle: (Math.PI * 2 * i) / 15,
+            speed: 0.05,
+            radius: 0.3
+          });
+        }
+      }
+
+      // Schedule next portal spawn
+      if (gameState.unlockedFeatures.portals) {
+        setTimeout(() => {
+          if (gameState.isRunning && !gameState.isPaused) {
+            spawnPortalPair();
+          }
+        }, 30000);
+      }
+    }
+
+    function checkPortalCollision(head) {
+      portals.forEach(portal => {
+        if (head.x === portal.entry.x && head.y === portal.entry.y) {
+          head.x = portal.exit.x;
+          head.y = portal.exit.y;
+          triggerPortalEffect(portal);
+        }
+      });
+    }
+
+    function triggerPortalEffect(portal) {
+      // Create flash effect particles
+      for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8;
+        constellationEffect.particles.push({
+          x: portal.exit.x * CELL_SIZE + CELL_SIZE / 2,
+          y: portal.exit.y * CELL_SIZE + CELL_SIZE / 2,
+          vx: Math.cos(angle) * 3,
+          vy: Math.sin(angle) * 3,
+          opacity: 1,
+          size: 4
+        });
+      }
+    }
+
+    function drawPortals() {
+      const now = Date.now();
+
+      portals = portals.filter(portal => {
+        const age = now - portal.spawnTime;
+        return age < portal.lifetime;
+      });
+
+      portals.forEach(portal => {
+        // Draw entry portal
+        drawPortal(portal.entry.x, portal.entry.y, portal);
+
+        // Draw exit portal
+        drawPortal(portal.exit.x, portal.exit.y, portal);
+
+        // Draw connection line
+        ctx.strokeStyle = portal.color;
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(
+          portal.entry.x * CELL_SIZE + CELL_SIZE / 2,
+          portal.entry.y * CELL_SIZE + CELL_SIZE / 2
+        );
+        ctx.lineTo(
+          portal.exit.x * CELL_SIZE + CELL_SIZE / 2,
+          portal.exit.y * CELL_SIZE + CELL_SIZE / 2
+        );
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+
+        // Update particle angles
+        portal.particles.forEach(p => {
+          p.angle += p.speed;
+        });
+      });
+    }
+
+    function drawPortal(x, y, portal) {
+      const centerX = x * CELL_SIZE + CELL_SIZE / 2;
+      const centerY = y * CELL_SIZE + CELL_SIZE / 2;
+
+      // Draw glow
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = portal.color;
+
+      // Draw portal center
+      ctx.fillStyle = portal.color;
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, CELL_SIZE / 2 - 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Draw swirling particles
+      portal.particles.forEach(p => {
+        const px = centerX + Math.cos(p.angle) * CELL_SIZE * p.radius;
+        const py = centerY + Math.sin(p.angle) * CELL_SIZE * p.radius;
+
+        ctx.fillStyle = portal.color;
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.shadowBlur = 0;
+    }
+
+    // ===== TIME DILATION ZONES =====
+    function spawnTimeDilationZones() {
+      timeDilationZones = [];
+
+      const zoneCount = 2 + Math.floor(Math.random() * 2); // 2-3 zones
+
+      for (let i = 0; i < zoneCount; i++) {
+        const isSlow = Math.random() < 0.5;
+        const size = 3 + Math.floor(Math.random() * 2); // 3-4 cells
+
+        let validPosition = false;
+        let attempts = 0;
+        let zone;
+
+        while (!validPosition && attempts < 30) {
+          zone = {
+            x: Math.floor(Math.random() * (GRID_SIZE - size)),
+            y: Math.floor(Math.random() * (GRID_SIZE - size)),
+            width: size,
+            height: size,
+            speedMultiplier: isSlow ? 0.5 : 1.5,
+            color: isSlow ? COLORS.slowZone : COLORS.fastZone,
+            type: isSlow ? 'slow' : 'fast',
+            spawnTime: Date.now(),
+            lifetime: 20000 // 20 seconds
+          };
+
+          // Check overlap with other zones
+          validPosition = !timeDilationZones.some(z =>
+            !(zone.x + zone.width <= z.x || zone.x >= z.x + z.width ||
+              zone.y + zone.height <= z.y || zone.y >= z.y + z.height)
+          );
+
+          attempts++;
+        }
+
+        if (validPosition) {
+          timeDilationZones.push(zone);
+        }
+      }
+
+      // Schedule respawn
+      if (gameState.unlockedFeatures.timeDilation) {
+        setTimeout(() => {
+          if (gameState.isRunning && !gameState.isPaused) {
+            spawnTimeDilationZones();
+          }
+        }, 20000);
+      }
+    }
+
+    function checkTimeDilationZones(head) {
+      timeDilationZones.forEach(zone => {
+        if (head.x >= zone.x && head.x < zone.x + zone.width &&
+            head.y >= zone.y && head.y < zone.y + zone.height) {
+          // Temporarily modify speed (applied in next game loop iteration)
+          // This is a visual effect primarily
+        }
+      });
+    }
+
+    function drawTimeDilationZones() {
+      const now = Date.now();
+
+      timeDilationZones = timeDilationZones.filter(zone => {
+        const age = now - zone.spawnTime;
+        return age < zone.lifetime;
+      });
+
+      timeDilationZones.forEach(zone => {
+        const x = zone.x * CELL_SIZE;
+        const y = zone.y * CELL_SIZE;
+        const width = zone.width * CELL_SIZE;
+        const height = zone.height * CELL_SIZE;
+
+        // Draw zone background
+        ctx.fillStyle = zone.color;
+        ctx.fillRect(x, y, width, height);
+
+        // Draw pulsing border
+        const pulse = Math.sin(Date.now() / 500) * 0.5 + 0.5;
+        ctx.strokeStyle = zone.type === 'slow' ?
+          `rgba(187, 225, 250, ${0.5 + pulse * 0.5})` :
+          `rgba(255, 107, 107, ${0.5 + pulse * 0.5})`;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, width, height);
+
+        // Draw arrow indicator
+        const centerX = x + width / 2;
+        const centerY = y + height / 2;
+        const arrowSize = 8;
+
+        ctx.fillStyle = zone.type === 'slow' ?
+          'rgba(187, 225, 250, 0.8)' :
+          'rgba(255, 107, 107, 0.8)';
+
+        ctx.beginPath();
+        if (zone.type === 'slow') {
+          // Down arrow
+          ctx.moveTo(centerX, centerY + arrowSize);
+          ctx.lineTo(centerX - arrowSize, centerY - arrowSize);
+          ctx.lineTo(centerX + arrowSize, centerY - arrowSize);
+        } else {
+          // Up arrow
+          ctx.moveTo(centerX, centerY - arrowSize);
+          ctx.lineTo(centerX - arrowSize, centerY + arrowSize);
+          ctx.lineTo(centerX + arrowSize, centerY + arrowSize);
+        }
+        ctx.closePath();
+        ctx.fill();
+      });
+    }
+
+    // ===== FEATURE UNLOCK SYSTEM =====
+    function checkFeatureUnlocks() {
+      if (gameState.score >= UNLOCK_THRESHOLDS.PARTICLE_TRAIL &&
+          !gameState.unlockedFeatures.particleTrail) {
+        unlockFeature('particleTrail', 'Particle Trail', '✨');
+      }
+
+      if (gameState.score >= UNLOCK_THRESHOLDS.ORBITAL_FOOD &&
+          !gameState.unlockedFeatures.orbitalFood) {
+        unlockFeature('orbitalFood', 'Orbital Food', '🌀');
+        spawnFood(); // Respawn as orbital
+      }
+
+      if (gameState.score >= UNLOCK_THRESHOLDS.PORTALS &&
+          !gameState.unlockedFeatures.portals) {
+        unlockFeature('portals', 'Portal Pairs', '🌊');
+        spawnPortalPair();
+      }
+
+      if (gameState.score >= UNLOCK_THRESHOLDS.TIME_DILATION &&
+          !gameState.unlockedFeatures.timeDilation) {
+        unlockFeature('timeDilation', 'Time Dilation Zones', '⚡');
+        spawnTimeDilationZones();
+      }
+    }
+
+    function unlockFeature(featureName, displayName, icon) {
+      gameState.unlockedFeatures[featureName] = true;
+      showUnlockNotification(`${icon} ${displayName}`);
+      updateFeatureUI();
+      pauseSpeedIncrease(2000);
+    }
+
+    function showUnlockNotification(message) {
+      unlockMessage.textContent = message;
+      unlockNotify.classList.add('show');
+
+      setTimeout(() => {
+        unlockNotify.classList.remove('show');
+      }, 3000);
+    }
+
+    function updateFeatureUI() {
+      const features = {
+        particleTrail: 'feature-trail',
+        orbitalFood: 'feature-orbital',
+        portals: 'feature-portals',
+        timeDilation: 'feature-zones'
+      };
+
+      Object.entries(features).forEach(([key, id]) => {
+        const element = document.getElementById(id);
+        const status = element.querySelector('.status');
+
+        if (gameState.unlockedFeatures[key]) {
+          element.classList.add('unlocked');
+          status.textContent = 'Unlocked';
+          status.classList.remove('locked');
+          status.classList.add('unlocked');
+        } else {
+          element.classList.remove('unlocked');
+          status.textContent = 'Locked';
+          status.classList.add('locked');
+          status.classList.remove('unlocked');
+        }
+      });
+
+      updateProgressionBar();
+    }
+
+    function updateProgressionBar() {
+      const thresholds = [0, 50, 100, 150, 200];
+      let currentThreshold = 0;
+      let nextThreshold = 50;
+
+      for (let i = 0; i < thresholds.length - 1; i++) {
+        if (gameState.score >= thresholds[i] && gameState.score < thresholds[i + 1]) {
+          currentThreshold = thresholds[i];
+          nextThreshold = thresholds[i + 1];
+          break;
+        }
+      }
+
+      if (gameState.score >= 200) {
+        currentThreshold = 200;
+        nextThreshold = 200;
+      }
+
+      const progress = ((gameState.score - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+      progressFill.style.width = `${Math.min(progress, 100)}%`;
+
+      const nextFeatures = {
+        50: 'Particle Trail',
+        100: 'Orbital Food',
+        150: 'Portals',
+        200: 'Time Zones'
+      };
+
+      if (gameState.score >= 200) {
+        nextUnlockEl.textContent = 'All Features Unlocked!';
+      } else {
+        nextUnlockEl.textContent = `Next: ${nextFeatures[nextThreshold]} (${nextThreshold}pts)`;
+      }
+    }
+
+    // ===== SPEED CONTROLLER =====
+    function calculateSpeed(score, baseSpeed) {
+      const speedReduction = Math.floor(score / 10) * 3;
+      const newSpeed = Math.max(baseSpeed - speedReduction, 40);
+
+      if (newSpeed < 60) {
+        const easeAmount = (60 - newSpeed) / 20;
+        return newSpeed + (easeAmount * 5);
+      }
+
+      return newSpeed;
+    }
+
+    function updateSpeed() {
+      if (!gameState.speedPaused) {
+        gameState.currentSpeed = calculateSpeed(
+          gameState.score,
+          gameState.baseSpeed
+        );
+        currentSpeedEl.textContent = `Speed: ${gameState.currentSpeed}ms`;
+      }
+    }
+
+    function pauseSpeedIncrease(duration) {
+      gameState.speedPaused = true;
+      setTimeout(() => {
+        gameState.speedPaused = false;
+      }, duration);
+    }
+
+    // ===== INPUT HANDLING =====
+    function setupEventListeners() {
+      document.addEventListener('keydown', handleKeyPress);
+      startBtn.addEventListener('click', startGame);
+      pauseBtn.addEventListener('click', togglePause);
+      restartBtn.addEventListener('click', startGame);
+      speedSelect.addEventListener('change', handleSpeedChange);
+    }
+
+    function handleKeyPress(e) {
+      if (!gameState.isRunning && (e.key === 'Enter')) {
+        startGame();
+        return;
+      }
+
+      if (e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+
+      // Direction controls
+      const keyMap = {
+        'ArrowUp': { x: 0, y: -1 },
+        'ArrowDown': { x: 0, y: 1 },
+        'ArrowLeft': { x: -1, y: 0 },
+        'ArrowRight': { x: 1, y: 0 },
+        'w': { x: 0, y: -1 },
+        'W': { x: 0, y: -1 },
+        's': { x: 0, y: 1 },
+        'S': { x: 0, y: 1 },
+        'a': { x: -1, y: 0 },
+        'A': { x: -1, y: 0 },
+        'd': { x: 1, y: 0 },
+        'D': { x: 1, y: 0 }
+      };
+
+      const newDir = keyMap[e.key];
+
+      if (newDir) {
+        e.preventDefault();
+
+        // Prevent 180-degree turns
+        if (newDir.x !== -direction.x || newDir.y !== -direction.y) {
+          nextDirection = newDir;
+        }
+      }
+    }
+
+    function togglePause() {
+      if (!gameState.isRunning) return;
+
+      gameState.isPaused = !gameState.isPaused;
+      pauseBtn.textContent = gameState.isPaused ? 'Resume' : 'Pause';
+
+      if (!gameState.isPaused) {
+        requestAnimationFrame(renderLoop);
+      }
+    }
+
+    function handleSpeedChange(e) {
+      gameState.baseSpeed = parseInt(e.target.value);
+      updateSpeed();
+    }
+
+    // ===== GAME OVER =====
+    function gameOver() {
+      gameState.isRunning = false;
+      clearInterval(gameLoopInterval);
+      pauseBtn.disabled = true;
+
+      // Update high score
+      if (gameState.score > gameState.highScore) {
+        gameState.highScore = gameState.score;
+        saveHighScore();
+        highScoreMessageEl.textContent = 'New High Score!';
+      } else {
+        highScoreMessageEl.textContent = `High Score: ${gameState.highScore}`;
+      }
+
+      finalScoreEl.textContent = `Final Score: ${gameState.score}`;
+      gameOverOverlay.classList.add('show');
+
+      updateUI();
+    }
+
+    // ===== SCORE MANAGEMENT =====
+    function loadHighScore() {
+      const saved = localStorage.getItem('cosmicSnakeHighScore');
+      if (saved) {
+        gameState.highScore = parseInt(saved);
+      }
+    }
+
+    function saveHighScore() {
+      localStorage.setItem('cosmicSnakeHighScore', gameState.highScore.toString());
+    }
+
+    // ===== UI UPDATES =====
+    function updateUI() {
+      currentScoreEl.textContent = `Score: ${gameState.score}`;
+      highScoreEl.textContent = `High Score: ${gameState.highScore}`;
+      currentSpeedEl.textContent = `Speed: ${gameState.currentSpeed}ms`;
+      updateProgressionBar();
+    }
+
+    // ===== RENDERING =====
+    function drawGrid() {
+      ctx.strokeStyle = COLORS.gridLine;
+      ctx.lineWidth = 0.5;
+
+      // Draw vertical lines
+      for (let i = 0; i <= GRID_SIZE; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * CELL_SIZE, 0);
+        ctx.lineTo(i * CELL_SIZE, CANVAS_SIZE);
+        ctx.stroke();
+      }
+
+      // Draw horizontal lines
+      for (let i = 0; i <= GRID_SIZE; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, i * CELL_SIZE);
+        ctx.lineTo(CANVAS_SIZE, i * CELL_SIZE);
+        ctx.stroke();
+      }
+    }
+
+    // ===== INITIALIZE GAME =====
+    init();
+  </script>
+</body>
+</html>
