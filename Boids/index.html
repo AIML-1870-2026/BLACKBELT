@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boids Flocking Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            width: 300px;
+            background: rgba(20, 25, 50, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(100, 120, 200, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .control-panel h1 {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+            color: #7dd3fc;
+        }
+
+        .control-panel .subtitle {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-bottom: 16px;
+        }
+
+        /* Collapsible Sections */
+        .section {
+            margin-bottom: 12px;
+            border: 1px solid rgba(100, 120, 200, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(100, 120, 200, 0.15);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: rgba(100, 120, 200, 0.25);
+        }
+
+        .section-header h3 {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .section-header .toggle-icon {
+            font-size: 0.7rem;
+            color: #64748b;
+            transition: transform 0.2s;
+        }
+
+        .section.collapsed .section-header .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 12px 14px;
+            display: block;
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+        }
+
+        .control-group label span {
+            color: #7dd3fc;
+            font-weight: 600;
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(100, 120, 200, 0.3);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #7dd3fc;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 8px rgba(125, 211, 252, 0.5);
+        }
+
+        .control-group .tooltip {
+            font-size: 0.65rem;
+            color: #64748b;
+            margin-top: 3px;
+            line-height: 1.3;
+        }
+
+        /* Checkbox styling */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #7dd3fc;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        /* Preset Buttons */
+        .preset-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: rgba(100, 120, 200, 0.2);
+            border: 1px solid rgba(100, 120, 200, 0.3);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .preset-btn:hover {
+            background: rgba(125, 211, 252, 0.2);
+            border-color: rgba(125, 211, 252, 0.5);
+        }
+
+        .preset-btn.active {
+            background: rgba(125, 211, 252, 0.3);
+            border-color: #7dd3fc;
+        }
+
+        .preset-btn small {
+            display: block;
+            color: #64748b;
+            font-size: 0.65rem;
+            margin-top: 2px;
+        }
+
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .toggle-group > span {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 90px;
+            height: 26px;
+            background: rgba(100, 120, 200, 0.3);
+            border-radius: 13px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .toggle-switch::before {
+            content: attr(data-left);
+            position: absolute;
+            left: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6rem;
+            color: #94a3b8;
+        }
+
+        .toggle-switch::after {
+            content: attr(data-right);
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.6rem;
+            color: #94a3b8;
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            width: 42px;
+            height: 20px;
+            background: #7dd3fc;
+            border-radius: 10px;
+            top: 3px;
+            left: 3px;
+            transition: left 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            color: #0a0e27;
+            font-weight: 600;
+        }
+
+        .toggle-switch.right .slider {
+            left: 45px;
+        }
+
+        /* Interaction Tool Buttons */
+        .tool-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .tool-btn {
+            padding: 8px 4px;
+            background: rgba(100, 120, 200, 0.2);
+            border: 1px solid rgba(100, 120, 200, 0.3);
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tool-btn:hover {
+            background: rgba(125, 211, 252, 0.2);
+        }
+
+        .tool-btn.active {
+            background: rgba(125, 211, 252, 0.3);
+            border-color: #7dd3fc;
+        }
+
+        .tool-btn.attract.active { border-color: #4ade80; background: rgba(74, 222, 128, 0.2); }
+        .tool-btn.repel.active { border-color: #f87171; background: rgba(248, 113, 113, 0.2); }
+        .tool-btn.spawn.active { border-color: #a78bfa; background: rgba(167, 139, 250, 0.2); }
+        .tool-btn.paint.active { border-color: #fbbf24; background: rgba(251, 191, 36, 0.2); }
+        .tool-btn.launch.active { border-color: #2dd4bf; background: rgba(45, 212, 191, 0.2); }
+        .tool-btn.obstacle.active { border-color: #fb923c; background: rgba(251, 146, 60, 0.2); }
+
+        .tool-btn .hotkey {
+            display: block;
+            font-size: 0.55rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn.primary {
+            background: #7dd3fc;
+            color: #0a0e27;
+        }
+
+        .action-btn.primary:hover {
+            background: #a5e4fc;
+        }
+
+        .action-btn.secondary {
+            background: rgba(100, 120, 200, 0.3);
+            color: #e2e8f0;
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(100, 120, 200, 0.5);
+        }
+
+        .action-btn.danger {
+            background: rgba(248, 113, 113, 0.3);
+            color: #fca5a5;
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(248, 113, 113, 0.5);
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 25, 50, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 14px 18px;
+            border: 1px solid rgba(100, 120, 200, 0.3);
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .stats-panel h3 {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+
+        .stat-row .label {
+            color: #94a3b8;
+        }
+
+        .stat-row .value {
+            font-family: monospace;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .stat-row .value.fps-good { color: #4ade80; }
+        .stat-row .value.fps-ok { color: #facc15; }
+        .stat-row .value.fps-bad { color: #f87171; }
+
+        .stat-divider {
+            height: 1px;
+            background: rgba(100, 120, 200, 0.2);
+            margin: 8px 0;
+        }
+
+        .stat-row.predator .label { color: #fb923c; }
+        .stat-row.prey .label { color: #38bdf8; }
+
+        /* Mode Indicator */
+        .mode-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 25, 50, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 120, 200, 0.3);
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            display: none;
+            z-index: 100;
+        }
+
+        .mode-indicator.active {
+            display: block;
+        }
+
+        .mode-indicator.attract { border-color: #4ade80; color: #4ade80; }
+        .mode-indicator.repel { border-color: #f87171; color: #f87171; }
+        .mode-indicator.spawn { border-color: #a78bfa; color: #a78bfa; }
+        .mode-indicator.paint { border-color: #fbbf24; color: #fbbf24; }
+        .mode-indicator.launch { border-color: #2dd4bf; color: #2dd4bf; }
+        .mode-indicator.obstacle { border-color: #fb923c; color: #fb923c; }
+
+        /* Keyboard hint */
+        .keyboard-hint {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(100, 120, 200, 0.2);
+            font-size: 0.65rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        .keyboard-hint kbd {
+            display: inline-block;
+            padding: 1px 5px;
+            background: rgba(100, 120, 200, 0.3);
+            border-radius: 3px;
+            margin: 0 2px;
+            font-family: monospace;
+        }
+
+        /* Scrollbar styling */
+        .control-panel::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .control-panel::-webkit-scrollbar-track {
+            background: rgba(100, 120, 200, 0.1);
+            border-radius: 3px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb {
+            background: rgba(100, 120, 200, 0.3);
+            border-radius: 3px;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 120, 200, 0.5);
+        }
+
+        /* Species color indicators */
+        .species-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .species-indicator.predator { background: linear-gradient(135deg, #ff4444, #ff8844); }
+        .species-indicator.prey { background: linear-gradient(135deg, #4444ff, #44ffff); }
+
+        /* Obstacle preset buttons */
+        .obstacle-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .obstacle-presets .preset-btn {
+            padding: 6px 8px;
+            font-size: 0.7rem;
+        }
+
+        .obstacle-presets .preset-btn small {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <h1>Boids Simulation</h1>
+        <p class="subtitle">Craig Reynolds' flocking algorithm with species & interactions</p>
+
+        <!-- Basic Controls Section -->
+        <div class="section" id="basicSection">
+            <div class="section-header">
+                <h3>Basic Parameters</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="control-group">
+                    <label>Separation <span id="sepValue">1.5</span></label>
+                    <input type="range" id="separation" min="0" max="3" step="0.1" value="1.5">
+                </div>
+                <div class="control-group">
+                    <label>Alignment <span id="alignValue">1.0</span></label>
+                    <input type="range" id="alignment" min="0" max="3" step="0.1" value="1.0">
+                </div>
+                <div class="control-group">
+                    <label>Cohesion <span id="cohValue">1.0</span></label>
+                    <input type="range" id="cohesion" min="0" max="3" step="0.1" value="1.0">
+                </div>
+                <div class="control-group">
+                    <label>Neighbor Radius <span id="radiusValue">50</span></label>
+                    <input type="range" id="radius" min="20" max="150" step="5" value="50">
+                </div>
+                <div class="control-group">
+                    <label>Max Speed <span id="speedValue">4.0</span></label>
+                    <input type="range" id="maxSpeed" min="1" max="8" step="0.5" value="4">
+                </div>
+                <div class="control-group">
+                    <label>Max Force <span id="forceValue">0.20</span></label>
+                    <input type="range" id="maxForce" min="0.05" max="0.5" step="0.05" value="0.2">
+                </div>
+                <div class="control-group">
+                    <label>Boid Count <span id="countValue">150</span></label>
+                    <input type="range" id="boidCount" min="50" max="500" step="10" value="150">
+                </div>
+                <div class="toggle-group">
+                    <span>Boundary:</span>
+                    <div class="toggle-switch" id="boundaryToggle" data-left="Wrap" data-right="Bounce">
+                        <div class="slider">Wrap</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presets Section -->
+        <div class="section" id="presetsSection">
+            <div class="section-header">
+                <h3>Presets</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <button class="preset-btn active" id="presetSchool">
+                    Schooling Fish
+                    <small>Smooth, coordinated movement</small>
+                </button>
+                <button class="preset-btn" id="presetSwarm">
+                    Chaotic Swarm
+                    <small>Erratic, loosely connected</small>
+                </button>
+                <button class="preset-btn" id="presetCluster">
+                    Tight Cluster
+                    <small>Dense formation staying close</small>
+                </button>
+            </div>
+        </div>
+
+        <!-- Species Section -->
+        <div class="section" id="speciesSection">
+            <div class="section-header">
+                <h3>Two Species Mode</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enableSpecies">
+                    <label for="enableSpecies">Enable Predators & Prey</label>
+                </div>
+
+                <div id="speciesControls" style="display: none;">
+                    <div style="margin: 10px 0; padding: 8px; background: rgba(255,100,100,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.75rem; color: #fb923c; margin-bottom: 8px;">
+                            <span class="species-indicator predator"></span>Predators (Red)
+                        </div>
+                        <div class="control-group">
+                            <label>Count <span id="predatorCountValue">30</span></label>
+                            <input type="range" id="predatorCount" min="10" max="100" step="5" value="30">
+                        </div>
+                        <div class="control-group">
+                            <label>Chase Strength <span id="chaseStrengthValue">1.5</span></label>
+                            <input type="range" id="chaseStrength" min="0" max="3" step="0.1" value="1.5">
+                        </div>
+                    </div>
+
+                    <div style="margin: 10px 0; padding: 8px; background: rgba(100,100,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.75rem; color: #38bdf8; margin-bottom: 8px;">
+                            <span class="species-indicator prey"></span>Prey (Blue)
+                        </div>
+                        <div class="control-group">
+                            <label>Count <span id="preyCountValue">120</span></label>
+                            <input type="range" id="preyCount" min="50" max="300" step="10" value="120">
+                        </div>
+                        <div class="control-group">
+                            <label>Evasion Strength <span id="evasionStrengthValue">3.0</span></label>
+                            <input type="range" id="evasionStrength" min="0" max="5" step="0.1" value="3.0">
+                        </div>
+                        <div class="control-group">
+                            <label>Evasion Radius <span id="evasionRadiusValue">100</span></label>
+                            <input type="range" id="evasionRadius" min="50" max="200" step="10" value="100">
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">
+                        Species Presets:
+                    </div>
+                    <button class="preset-btn" id="presetHunting" style="margin-top: 4px;">
+                        Hunting Pack
+                        <small>Aggressive predators</small>
+                    </button>
+                    <button class="preset-btn" id="presetEscape">
+                        Swift Escape
+                        <small>Evasive prey</small>
+                    </button>
+                    <button class="preset-btn" id="presetBalanced">
+                        Balanced
+                        <small>Natural dynamics</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interaction Tools Section -->
+        <div class="section" id="toolsSection">
+            <div class="section-header">
+                <h3>Interaction Tools</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="tool-buttons">
+                    <button class="tool-btn" id="toolNone">
+                        None
+                        <span class="hotkey">N</span>
+                    </button>
+                    <button class="tool-btn attract" id="toolAttract">
+                        Attract
+                        <span class="hotkey">A</span>
+                    </button>
+                    <button class="tool-btn repel" id="toolRepel">
+                        Repel
+                        <span class="hotkey">R</span>
+                    </button>
+                    <button class="tool-btn spawn" id="toolSpawn">
+                        Spawn
+                        <span class="hotkey">S</span>
+                    </button>
+                    <button class="tool-btn launch" id="toolLaunch">
+                        Launch
+                        <span class="hotkey">L</span>
+                    </button>
+                    <button class="tool-btn obstacle" id="toolObstacle">
+                        Obstacle
+                        <span class="hotkey">O</span>
+                    </button>
+                </div>
+
+                <div id="toolSettings">
+                    <div id="attractSettings" style="display: none;">
+                        <div class="control-group">
+                            <label>Influence Radius <span id="attractRadiusValue">150</span></label>
+                            <input type="range" id="attractRadius" min="50" max="300" step="10" value="150">
+                        </div>
+                        <div class="control-group">
+                            <label>Strength <span id="attractStrengthValue">2.0</span></label>
+                            <input type="range" id="attractStrength" min="0" max="5" step="0.1" value="2.0">
+                        </div>
+                    </div>
+                    <div id="repelSettings" style="display: none;">
+                        <div class="control-group">
+                            <label>Influence Radius <span id="repelRadiusValue">150</span></label>
+                            <input type="range" id="repelRadius" min="50" max="300" step="10" value="150">
+                        </div>
+                        <div class="control-group">
+                            <label>Strength <span id="repelStrengthValue">2.0</span></label>
+                            <input type="range" id="repelStrength" min="0" max="5" step="0.1" value="2.0">
+                        </div>
+                    </div>
+                    <div id="spawnSettings" style="display: none;">
+                        <div class="control-group">
+                            <label>Spawn Count <span id="spawnCountValue">5</span></label>
+                            <input type="range" id="spawnCount" min="1" max="10" step="1" value="5">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="spawnAsPrey" checked>
+                            <label for="spawnAsPrey">Spawn as Prey (if species mode)</label>
+                        </div>
+                    </div>
+                    <div id="launchSettings" style="display: none;">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="burstLaunch">
+                            <label for="burstLaunch">Burst Launch (5 boids)</label>
+                        </div>
+                    </div>
+                    <div id="obstacleSettings" style="display: none;">
+                        <div class="control-group">
+                            <label>Obstacle Radius <span id="obstacleRadiusValue">40</span></label>
+                            <input type="range" id="obstacleRadius" min="20" max="100" step="5" value="40">
+                        </div>
+                        <div class="control-group">
+                            <label>Avoidance Strength <span id="avoidanceStrengthValue">5.0</span></label>
+                            <input type="range" id="avoidanceStrength" min="0" max="10" step="0.5" value="5.0">
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-top: 8px;">
+                            <button class="action-btn danger" id="clearObstacles" style="flex: 1; font-size: 0.7rem;">Clear All</button>
+                        </div>
+                        <div class="obstacle-presets">
+                            <button class="preset-btn" id="obstacleScattered">Scattered</button>
+                            <button class="preset-btn" id="obstacleCorridor">Corridor</button>
+                            <button class="preset-btn" id="obstacleMaze">Maze</button>
+                            <button class="preset-btn" id="obstacleCenter">Central</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Controls -->
+        <div class="actions">
+            <button class="action-btn primary" id="pauseBtn">Pause</button>
+            <button class="action-btn secondary" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="keyboard-hint">
+            <kbd>Space</kbd> Pause &nbsp;
+            <kbd>A</kbd><kbd>R</kbd><kbd>S</kbd><kbd>L</kbd><kbd>O</kbd><kbd>N</kbd> Tools<br>
+            <kbd>C</kbd> Clear Obstacles &nbsp;
+            <kbd>Del</kbd> Remove hovered
+        </div>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+        <h3>Statistics</h3>
+        <div class="stat-row">
+            <span class="label">FPS</span>
+            <span class="value fps-good" id="fpsValue">60</span>
+        </div>
+        <div class="stat-row">
+            <span class="label">Boids</span>
+            <span class="value" id="boidCountStat">150</span>
+        </div>
+        <div class="stat-row">
+            <span class="label">Avg Speed</span>
+            <span class="value" id="avgSpeedStat">0.0</span>
+        </div>
+        <div class="stat-row">
+            <span class="label">Avg Neighbors</span>
+            <span class="value" id="avgNeighborsStat">0.0</span>
+        </div>
+        <div class="stat-row">
+            <span class="label">Time</span>
+            <span class="value" id="timeStat">0:00</span>
+        </div>
+
+        <div id="speciesStats" style="display: none;">
+            <div class="stat-divider"></div>
+            <div class="stat-row predator">
+                <span class="label">Predators</span>
+                <span class="value" id="predatorStat">0</span>
+            </div>
+            <div class="stat-row prey">
+                <span class="label">Prey</span>
+                <span class="value" id="preyStat">0</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Chase Events/s</span>
+                <span class="value" id="chaseStat">0</span>
+            </div>
+        </div>
+
+        <div id="obstacleStats">
+            <div class="stat-divider"></div>
+            <div class="stat-row">
+                <span class="label">Obstacles</span>
+                <span class="value" id="obstacleStat">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Indicator -->
+    <div class="mode-indicator" id="modeIndicator"></div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const config = {
+            // Basic parameters
+            separation: 1.5,
+            alignment: 1.0,
+            cohesion: 1.0,
+            neighborRadius: 50,
+            maxSpeed: 4.0,
+            maxForce: 0.2,
+            boidCount: 150,
+            wrapBoundary: true,
+
+            // Species mode
+            speciesEnabled: false,
+            predatorCount: 30,
+            preyCount: 120,
+            chaseStrength: 1.5,
+            evasionStrength: 3.0,
+            evasionRadius: 100,
+
+            // Interaction tools
+            currentTool: 'none',
+            attractRadius: 150,
+            attractStrength: 2.0,
+            repelRadius: 150,
+            repelStrength: 2.0,
+            spawnCount: 5,
+            spawnAsPrey: true,
+            burstLaunch: false,
+
+            // Obstacles
+            obstacleRadius: 40,
+            avoidanceStrength: 5.0,
+            lookaheadMultiplier: 2.5,
+            safetyMargin: 10
+        };
+
+        // Presets
+        const presets = {
+            school: { separation: 1.2, alignment: 2.0, cohesion: 1.0, neighborRadius: 60, maxSpeed: 3.5, maxForce: 0.2 },
+            swarm: { separation: 0.8, alignment: 0.3, cohesion: 0.5, neighborRadius: 30, maxSpeed: 5.0, maxForce: 0.3 },
+            cluster: { separation: 0.6, alignment: 1.0, cohesion: 2.5, neighborRadius: 80, maxSpeed: 3.0, maxForce: 0.15 }
+        };
+
+        const speciesPresets = {
+            hunting: { chaseStrength: 2.5, evasionStrength: 1.5, evasionRadius: 80 },
+            escape: { chaseStrength: 0.8, evasionStrength: 4.5, evasionRadius: 150 },
+            balanced: { chaseStrength: 1.5, evasionStrength: 3.0, evasionRadius: 100 }
+        };
+
+        // Species parameters
+        const predatorParams = {
+            separation: 2.0, alignment: 0.8, cohesion: 0.5,
+            neighborRadius: 70, maxSpeed: 5.0, maxForce: 0.25
+        };
+
+        const preyParams = {
+            separation: 1.5, alignment: 1.8, cohesion: 1.2,
+            neighborRadius: 50, maxSpeed: 4.0, maxForce: 0.2
+        };
+
+        // ==================== CANVAS SETUP ====================
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ==================== VECTOR CLASS ====================
+        class Vector {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+
+            add(v) { this.x += v.x; this.y += v.y; return this; }
+            sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+            mult(n) { this.x *= n; this.y *= n; return this; }
+            div(n) { if (n !== 0) { this.x /= n; this.y /= n; } return this; }
+            mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+            normalize() { const m = this.mag(); if (m > 0) this.div(m); return this; }
+            limit(max) { if (this.mag() > max) { this.normalize().mult(max); } return this; }
+            setMag(n) { return this.normalize().mult(n); }
+            copy() { return new Vector(this.x, this.y); }
+            heading() { return Math.atan2(this.y, this.x); }
+
+            static sub(v1, v2) { return new Vector(v1.x - v2.x, v1.y - v2.y); }
+            static dist(v1, v2) { return Math.sqrt((v1.x - v2.x) ** 2 + (v1.y - v2.y) ** 2); }
+            static random() { const a = Math.random() * Math.PI * 2; return new Vector(Math.cos(a), Math.sin(a)); }
+            static fromAngle(angle) { return new Vector(Math.cos(angle), Math.sin(angle)); }
+        }
+
+        // ==================== BOID CLASS ====================
+        class Boid {
+            constructor(x, y, species = 'default') {
+                this.position = new Vector(x, y);
+                this.velocity = Vector.random().mult(2);
+                this.acceleration = new Vector();
+                this.species = species;
+                this.neighborCount = 0;
+            }
+
+            getParams() {
+                if (!config.speciesEnabled) return config;
+                return this.species === 'predator' ? predatorParams : preyParams;
+            }
+
+            getMaxSpeed() {
+                return this.getParams().maxSpeed;
+            }
+
+            getMaxForce() {
+                return this.getParams().maxForce;
+            }
+
+            getNeighbors(boids, sameSpeciesOnly = true) {
+                const neighbors = [];
+                const radius = this.getParams().neighborRadius;
+                for (const other of boids) {
+                    if (other === this) continue;
+                    if (sameSpeciesOnly && config.speciesEnabled && other.species !== this.species) continue;
+                    const d = Vector.dist(this.position, other.position);
+                    if (d < radius) {
+                        neighbors.push({ boid: other, distance: d });
+                    }
+                }
+                this.neighborCount = neighbors.length;
+                return neighbors;
+            }
+
+            separate(neighbors) {
+                const steering = new Vector();
+                let count = 0;
+                const params = this.getParams();
+
+                for (const { boid, distance } of neighbors) {
+                    if (distance < params.neighborRadius * 0.5 && distance > 0) {
+                        const diff = Vector.sub(this.position, boid.position);
+                        diff.normalize().div(distance);
+                        steering.add(diff);
+                        count++;
+                    }
+                }
+
+                if (count > 0) {
+                    steering.div(count).setMag(this.getMaxSpeed()).sub(this.velocity).limit(this.getMaxForce());
+                }
+                return steering;
+            }
+
+            align(neighbors) {
+                const steering = new Vector();
+                if (neighbors.length === 0) return steering;
+
+                for (const { boid } of neighbors) {
+                    steering.add(boid.velocity);
+                }
+                steering.div(neighbors.length).setMag(this.getMaxSpeed()).sub(this.velocity).limit(this.getMaxForce());
+                return steering;
+            }
+
+            cohere(neighbors) {
+                const steering = new Vector();
+                if (neighbors.length === 0) return steering;
+
+                for (const { boid } of neighbors) {
+                    steering.add(boid.position);
+                }
+                steering.div(neighbors.length).sub(this.position).setMag(this.getMaxSpeed()).sub(this.velocity).limit(this.getMaxForce());
+                return steering;
+            }
+
+            // Predator chases prey
+            chase(preyBoids) {
+                if (this.species !== 'predator' || !config.speciesEnabled) return new Vector();
+
+                let closest = null;
+                let closestDist = Infinity;
+
+                for (const prey of preyBoids) {
+                    if (prey.species !== 'prey') continue;
+                    const d = Vector.dist(this.position, prey.position);
+                    if (d < this.getParams().neighborRadius && d < closestDist) {
+                        closest = prey;
+                        closestDist = d;
+                    }
+                }
+
+                if (closest) {
+                    const desired = Vector.sub(closest.position, this.position).setMag(this.getMaxSpeed());
+                    return desired.sub(this.velocity).limit(this.getMaxForce());
+                }
+                return new Vector();
+            }
+
+            // Prey evades predators
+            evade(predatorBoids) {
+                if (this.species !== 'prey' || !config.speciesEnabled) return new Vector();
+
+                const steering = new Vector();
+                let count = 0;
+
+                for (const predator of predatorBoids) {
+                    if (predator.species !== 'predator') continue;
+                    const d = Vector.dist(this.position, predator.position);
+                    if (d < config.evasionRadius && d > 0) {
+                        const diff = Vector.sub(this.position, predator.position);
+                        diff.normalize().div(d);
+                        steering.add(diff);
+                        count++;
+                        chaseEventsThisSecond++;
+                    }
+                }
+
+                if (count > 0) {
+                    steering.div(count).setMag(this.getMaxSpeed()).sub(this.velocity).limit(this.getMaxForce() * 2);
+                }
+                return steering;
+            }
+
+            // Avoid obstacles
+            avoidObstacles() {
+                const steering = new Vector();
+                if (obstacles.length === 0) return steering;
+
+                const lookahead = this.velocity.mag() * config.lookaheadMultiplier;
+
+                for (const obstacle of obstacles) {
+                    const toObstacle = Vector.sub(obstacle.position, this.position);
+                    const distance = toObstacle.mag();
+                    const avoidRadius = obstacle.radius + config.safetyMargin;
+
+                    if (distance < avoidRadius + lookahead) {
+                        // Check if we're heading toward the obstacle
+                        const ahead = this.velocity.copy().normalize().mult(lookahead);
+                        const aheadPoint = this.position.copy().add(ahead);
+                        const aheadDist = Vector.dist(aheadPoint, obstacle.position);
+
+                        if (aheadDist < avoidRadius || distance < avoidRadius) {
+                            // Calculate avoidance force
+                            const avoidForce = Vector.sub(this.position, obstacle.position);
+                            avoidForce.normalize();
+
+                            // Stronger force when closer
+                            const strength = 1 - (distance / (avoidRadius + lookahead));
+                            avoidForce.mult(strength * config.avoidanceStrength);
+                            steering.add(avoidForce);
+                        }
+                    }
+                }
+
+                steering.limit(this.getMaxForce() * 3);
+                return steering;
+            }
+
+            // Mouse interaction
+            mouseInteraction(mousePos) {
+                if (!mousePos || config.currentTool === 'none') return new Vector();
+
+                const d = Vector.dist(this.position, mousePos);
+
+                if (config.currentTool === 'attract' && d < config.attractRadius) {
+                    const strength = (1 - d / config.attractRadius) * config.attractStrength;
+                    return Vector.sub(mousePos, this.position).setMag(strength * this.getMaxForce());
+                }
+
+                if (config.currentTool === 'repel' && d < config.repelRadius) {
+                    const strength = (1 - d / config.repelRadius) * config.repelStrength;
+                    return Vector.sub(this.position, mousePos).setMag(strength * this.getMaxForce());
+                }
+
+                return new Vector();
+            }
+
+            flock(boids, mousePos) {
+                const neighbors = this.getNeighbors(boids);
+                const params = this.getParams();
+                const sep = config.speciesEnabled ? params.separation : config.separation;
+                const ali = config.speciesEnabled ? params.alignment : config.alignment;
+                const coh = config.speciesEnabled ? params.cohesion : config.cohesion;
+
+                const separation = this.separate(neighbors).mult(sep);
+                const alignment = this.align(neighbors).mult(ali);
+                const cohesion = this.cohere(neighbors).mult(coh);
+
+                this.acceleration.add(separation);
+                this.acceleration.add(alignment);
+                this.acceleration.add(cohesion);
+
+                // Species interactions
+                if (config.speciesEnabled) {
+                    if (this.species === 'predator') {
+                        this.acceleration.add(this.chase(boids).mult(config.chaseStrength));
+                    } else if (this.species === 'prey') {
+                        this.acceleration.add(this.evade(boids).mult(config.evasionStrength));
+                    }
+                }
+
+                // Obstacle avoidance
+                this.acceleration.add(this.avoidObstacles());
+
+                // Mouse interaction
+                this.acceleration.add(this.mouseInteraction(mousePos));
+            }
+
+            boundaries() {
+                const margin = 50;
+                const turnForce = 0.5;
+
+                if (config.wrapBoundary) {
+                    if (this.position.x < 0) this.position.x = canvas.width;
+                    if (this.position.x > canvas.width) this.position.x = 0;
+                    if (this.position.y < 0) this.position.y = canvas.height;
+                    if (this.position.y > canvas.height) this.position.y = 0;
+                } else {
+                    const steering = new Vector();
+                    if (this.position.x < margin) steering.x = turnForce;
+                    else if (this.position.x > canvas.width - margin) steering.x = -turnForce;
+                    if (this.position.y < margin) steering.y = turnForce;
+                    else if (this.position.y > canvas.height - margin) steering.y = -turnForce;
+                    this.acceleration.add(steering);
+                }
+            }
+
+            update() {
+                this.velocity.add(this.acceleration);
+                this.velocity.limit(this.getMaxSpeed());
+                this.position.add(this.velocity);
+                this.acceleration.mult(0);
+            }
+
+            draw() {
+                const speed = this.velocity.mag();
+                const maxSpeed = this.getMaxSpeed();
+                const speedRatio = Math.min(speed / maxSpeed, 1);
+                const angle = Math.atan2(this.velocity.y, this.velocity.x);
+
+                let color;
+                let size = 8;
+
+                if (config.speciesEnabled) {
+                    if (this.species === 'predator') {
+                        const r = 255;
+                        const g = Math.floor(68 + speedRatio * 68);
+                        const b = 68;
+                        color = `rgb(${r}, ${g}, ${b})`;
+                        size = 11;
+                    } else {
+                        const r = Math.floor(68 + speedRatio * 50);
+                        const g = Math.floor(68 + speedRatio * 150);
+                        const b = 255;
+                        color = `rgb(${r}, ${g}, ${b})`;
+                        size = 8;
+                    }
+                } else {
+                    const r = Math.floor(100 + speedRatio * 100);
+                    const g = Math.floor(150 + speedRatio * 105);
+                    const b = 255;
+                    color = `rgb(${r}, ${g}, ${b})`;
+                }
+
+                ctx.save();
+                ctx.translate(this.position.x, this.position.y);
+                ctx.rotate(angle);
+
+                ctx.beginPath();
+                ctx.moveTo(size, 0);
+                ctx.lineTo(-size * 0.6, size * 0.5);
+                ctx.lineTo(-size * 0.6, -size * 0.5);
+                ctx.closePath();
+
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = color;
+                ctx.fillStyle = color;
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // ==================== OBSTACLE CLASS ====================
+        class Obstacle {
+            constructor(x, y, radius) {
+                this.position = new Vector(x, y);
+                this.radius = radius;
+                this.hovered = false;
+                this.selected = false;
+            }
+
+            contains(point) {
+                return Vector.dist(this.position, point) < this.radius;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+
+                if (this.selected) {
+                    ctx.fillStyle = 'rgba(60, 60, 80, 0.8)';
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 3;
+                } else if (this.hovered) {
+                    ctx.fillStyle = 'rgba(50, 50, 70, 0.8)';
+                    ctx.strokeStyle = 'rgba(150, 160, 200, 0.6)';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.fillStyle = 'rgba(42, 42, 60, 0.8)';
+                    ctx.strokeStyle = 'rgba(100, 110, 150, 0.5)';
+                    ctx.lineWidth = 2;
+                }
+
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        // ==================== GAME STATE ====================
+        let boids = [];
+        let obstacles = [];
+        let paused = false;
+        let startTime = Date.now();
+        let mousePos = null;
+        let isDragging = false;
+        let dragStart = null;
+        let launchPreview = null;
+        let hoveredObstacle = null;
+        let chaseEventsThisSecond = 0;
+        let lastChaseCount = 0;
+        let chaseCountTime = Date.now();
+
+        // ==================== INITIALIZATION ====================
+        function initBoids() {
+            boids = [];
+
+            if (config.speciesEnabled) {
+                // Spawn predators
+                for (let i = 0; i < config.predatorCount; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    boids.push(new Boid(x, y, 'predator'));
+                }
+                // Spawn prey
+                for (let i = 0; i < config.preyCount; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    boids.push(new Boid(x, y, 'prey'));
+                }
+            } else {
+                for (let i = 0; i < config.boidCount; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    boids.push(new Boid(x, y));
+                }
+            }
+        }
+
+        function updateBoidCount() {
+            if (config.speciesEnabled) {
+                // Update predator count
+                const currentPredators = boids.filter(b => b.species === 'predator').length;
+                if (config.predatorCount > currentPredators) {
+                    for (let i = currentPredators; i < config.predatorCount; i++) {
+                        boids.push(new Boid(Math.random() * canvas.width, Math.random() * canvas.height, 'predator'));
+                    }
+                } else if (config.predatorCount < currentPredators) {
+                    let removed = 0;
+                    boids = boids.filter(b => {
+                        if (b.species === 'predator' && removed < currentPredators - config.predatorCount) {
+                            removed++;
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+
+                // Update prey count
+                const currentPrey = boids.filter(b => b.species === 'prey').length;
+                if (config.preyCount > currentPrey) {
+                    for (let i = currentPrey; i < config.preyCount; i++) {
+                        boids.push(new Boid(Math.random() * canvas.width, Math.random() * canvas.height, 'prey'));
+                    }
+                } else if (config.preyCount < currentPrey) {
+                    let removed = 0;
+                    boids = boids.filter(b => {
+                        if (b.species === 'prey' && removed < currentPrey - config.preyCount) {
+                            removed++;
+                            return false;
+                        }
+                        return true;
+                    });
+                }
+            } else {
+                if (config.boidCount > boids.length) {
+                    for (let i = boids.length; i < config.boidCount; i++) {
+                        boids.push(new Boid(Math.random() * canvas.width, Math.random() * canvas.height));
+                    }
+                } else if (config.boidCount < boids.length) {
+                    boids.length = config.boidCount;
+                }
+            }
+        }
+
+        function spawnBoids(x, y, count, species = 'default') {
+            if (boids.length >= 500) return;
+
+            const actualCount = Math.min(count, 500 - boids.length);
+            for (let i = 0; i < actualCount; i++) {
+                const offsetX = (Math.random() - 0.5) * 30;
+                const offsetY = (Math.random() - 0.5) * 30;
+                const spawnSpecies = config.speciesEnabled ? (config.spawnAsPrey ? 'prey' : 'predator') : 'default';
+                boids.push(new Boid(x + offsetX, y + offsetY, spawnSpecies));
+            }
+        }
+
+        function launchBoids(startPos, endPos, burst = false) {
+            if (boids.length >= 500) return;
+
+            const velocity = Vector.sub(endPos, startPos);
+            const speed = Math.min(velocity.mag() * 0.1, config.maxSpeed * 2);
+            velocity.setMag(speed);
+
+            const count = burst ? 5 : 1;
+            const actualCount = Math.min(count, 500 - boids.length);
+
+            for (let i = 0; i < actualCount; i++) {
+                const spawnSpecies = config.speciesEnabled ? (config.spawnAsPrey ? 'prey' : 'predator') : 'default';
+                const boid = new Boid(startPos.x, startPos.y, spawnSpecies);
+
+                if (burst && i > 0) {
+                    const angle = velocity.heading() + (i - 2) * 0.2;
+                    boid.velocity = Vector.fromAngle(angle).mult(speed);
+                } else {
+                    boid.velocity = velocity.copy();
+                }
+                boids.push(boid);
+            }
+        }
+
+        // ==================== OBSTACLE PRESETS ====================
+        function createObstaclePreset(type) {
+            obstacles = [];
+
+            switch(type) {
+                case 'scattered':
+                    for (let i = 0; i < 8; i++) {
+                        const x = 150 + Math.random() * (canvas.width - 300);
+                        const y = 100 + Math.random() * (canvas.height - 200);
+                        const r = 30 + Math.random() * 40;
+                        obstacles.push(new Obstacle(x, y, r));
+                    }
+                    break;
+                case 'corridor':
+                    const midY = canvas.height / 2;
+                    for (let i = 0; i < 6; i++) {
+                        const x = 200 + i * ((canvas.width - 400) / 5);
+                        obstacles.push(new Obstacle(x, midY - 120, 50));
+                        obstacles.push(new Obstacle(x, midY + 120, 50));
+                    }
+                    break;
+                case 'maze':
+                    const cols = 5;
+                    const rows = 4;
+                    const cellW = (canvas.width - 200) / cols;
+                    const cellH = (canvas.height - 150) / rows;
+                    for (let i = 0; i < cols; i++) {
+                        for (let j = 0; j < rows; j++) {
+                            if ((i + j) % 2 === 0) {
+                                obstacles.push(new Obstacle(150 + i * cellW + cellW/2, 100 + j * cellH + cellH/2, 35));
+                            }
+                        }
+                    }
+                    break;
+                case 'center':
+                    const cx = canvas.width / 2;
+                    const cy = canvas.height / 2;
+                    obstacles.push(new Obstacle(cx, cy, 80));
+                    for (let i = 0; i < 6; i++) {
+                        const angle = i * Math.PI / 3;
+                        obstacles.push(new Obstacle(cx + Math.cos(angle) * 150, cy + Math.sin(angle) * 150, 40));
+                    }
+                    break;
+            }
+        }
+
+        // ==================== STATS ====================
+        let frameCount = 0;
+        let fps = 60;
+        let lastFpsUpdate = 0;
+
+        function updateStats() {
+            frameCount++;
+            const now = performance.now();
+
+            if (now - lastFpsUpdate >= 500) {
+                fps = Math.round((frameCount * 1000) / (now - lastFpsUpdate));
+                frameCount = 0;
+                lastFpsUpdate = now;
+
+                const fpsEl = document.getElementById('fpsValue');
+                fpsEl.textContent = fps;
+                fpsEl.className = 'value ' + (fps >= 55 ? 'fps-good' : fps >= 30 ? 'fps-ok' : 'fps-bad');
+            }
+
+            // Chase events counter
+            if (Date.now() - chaseCountTime >= 1000) {
+                lastChaseCount = chaseEventsThisSecond;
+                chaseEventsThisSecond = 0;
+                chaseCountTime = Date.now();
+            }
+
+            document.getElementById('boidCountStat').textContent = boids.length;
+
+            let totalSpeed = 0;
+            let totalNeighbors = 0;
+            for (const boid of boids) {
+                totalSpeed += boid.velocity.mag();
+                totalNeighbors += boid.neighborCount;
+            }
+            document.getElementById('avgSpeedStat').textContent = boids.length > 0 ? (totalSpeed / boids.length).toFixed(1) : '0.0';
+            document.getElementById('avgNeighborsStat').textContent = boids.length > 0 ? (totalNeighbors / boids.length).toFixed(1) : '0.0';
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timeStat').textContent = `${Math.floor(elapsed / 60)}:${(elapsed % 60).toString().padStart(2, '0')}`;
+
+            document.getElementById('obstacleStat').textContent = obstacles.length;
+
+            if (config.speciesEnabled) {
+                document.getElementById('predatorStat').textContent = boids.filter(b => b.species === 'predator').length;
+                document.getElementById('preyStat').textContent = boids.filter(b => b.species === 'prey').length;
+                document.getElementById('chaseStat').textContent = lastChaseCount;
+            }
+        }
+
+        // ==================== DRAWING ====================
+        function drawInteractionFeedback() {
+            if (!mousePos) return;
+
+            ctx.save();
+
+            if (config.currentTool === 'attract') {
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, config.attractRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+
+                // Pulsing center
+                const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, 10 + pulse * 5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(74, 222, 128, ${0.3 + pulse * 0.3})`;
+                ctx.fill();
+            }
+
+            if (config.currentTool === 'repel') {
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, config.repelRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(248, 113, 113, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+
+                const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, 10 + pulse * 5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(248, 113, 113, ${0.3 + pulse * 0.3})`;
+                ctx.fill();
+            }
+
+            if (config.currentTool === 'spawn') {
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, 20, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(167, 139, 250, 0.3)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(167, 139, 250, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            if (config.currentTool === 'obstacle') {
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, config.obstacleRadius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(251, 146, 60, 0.2)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(251, 146, 60, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+            }
+
+            if (config.currentTool === 'launch' && launchPreview) {
+                ctx.beginPath();
+                ctx.moveTo(launchPreview.start.x, launchPreview.start.y);
+                ctx.lineTo(launchPreview.end.x, launchPreview.end.y);
+                ctx.strokeStyle = 'rgba(45, 212, 191, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                ctx.stroke();
+
+                // Arrow head
+                const angle = Math.atan2(launchPreview.end.y - launchPreview.start.y, launchPreview.end.x - launchPreview.start.x);
+                ctx.save();
+                ctx.translate(launchPreview.end.x, launchPreview.end.y);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-15, -8);
+                ctx.lineTo(-15, 8);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(45, 212, 191, 0.8)';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.restore();
+        }
+
+        function animate() {
+            if (!paused) {
+                ctx.fillStyle = '#0a0e27';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw obstacles
+                for (const obstacle of obstacles) {
+                    obstacle.draw();
+                }
+
+                // Update and draw boids
+                for (const boid of boids) {
+                    boid.flock(boids, mousePos);
+                    boid.boundaries();
+                    boid.update();
+                    boid.draw();
+                }
+
+                // Draw interaction feedback
+                drawInteractionFeedback();
+
+                updateStats();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ==================== UI CONTROLS ====================
+        function setupSlider(id, valueId, configKey, decimals = 1) {
+            const slider = document.getElementById(id);
+            const valueDisplay = document.getElementById(valueId);
+            if (!slider || !valueDisplay) return;
+
+            slider.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                config[configKey] = value;
+                valueDisplay.textContent = value.toFixed(decimals);
+                clearActivePreset();
+            });
+        }
+
+        // Basic sliders
+        setupSlider('separation', 'sepValue', 'separation');
+        setupSlider('alignment', 'alignValue', 'alignment');
+        setupSlider('cohesion', 'cohValue', 'cohesion');
+        setupSlider('radius', 'radiusValue', 'neighborRadius', 0);
+        setupSlider('maxSpeed', 'speedValue', 'maxSpeed');
+        setupSlider('maxForce', 'forceValue', 'maxForce', 2);
+
+        // Boid count
+        document.getElementById('boidCount').addEventListener('input', (e) => {
+            config.boidCount = parseInt(e.target.value);
+            document.getElementById('countValue').textContent = config.boidCount;
+            if (!config.speciesEnabled) updateBoidCount();
+        });
+
+        // Species sliders
+        setupSlider('predatorCount', 'predatorCountValue', 'predatorCount', 0);
+        document.getElementById('predatorCount')?.addEventListener('input', updateBoidCount);
+
+        setupSlider('preyCount', 'preyCountValue', 'preyCount', 0);
+        document.getElementById('preyCount')?.addEventListener('input', updateBoidCount);
+
+        setupSlider('chaseStrength', 'chaseStrengthValue', 'chaseStrength');
+        setupSlider('evasionStrength', 'evasionStrengthValue', 'evasionStrength');
+        setupSlider('evasionRadius', 'evasionRadiusValue', 'evasionRadius', 0);
+
+        // Tool sliders
+        setupSlider('attractRadius', 'attractRadiusValue', 'attractRadius', 0);
+        setupSlider('attractStrength', 'attractStrengthValue', 'attractStrength');
+        setupSlider('repelRadius', 'repelRadiusValue', 'repelRadius', 0);
+        setupSlider('repelStrength', 'repelStrengthValue', 'repelStrength');
+        setupSlider('spawnCount', 'spawnCountValue', 'spawnCount', 0);
+        setupSlider('obstacleRadius', 'obstacleRadiusValue', 'obstacleRadius', 0);
+        setupSlider('avoidanceStrength', 'avoidanceStrengthValue', 'avoidanceStrength');
+
+        // Checkboxes
+        document.getElementById('spawnAsPrey')?.addEventListener('change', (e) => {
+            config.spawnAsPrey = e.target.checked;
+        });
+
+        document.getElementById('burstLaunch')?.addEventListener('change', (e) => {
+            config.burstLaunch = e.target.checked;
+        });
+
+        // Boundary toggle
+        document.getElementById('boundaryToggle').addEventListener('click', function() {
+            config.wrapBoundary = !config.wrapBoundary;
+            this.classList.toggle('right', !config.wrapBoundary);
+            this.querySelector('.slider').textContent = config.wrapBoundary ? 'Wrap' : 'Bounce';
+        });
+
+        // Species toggle
+        document.getElementById('enableSpecies').addEventListener('change', (e) => {
+            config.speciesEnabled = e.target.checked;
+            document.getElementById('speciesControls').style.display = e.target.checked ? 'block' : 'none';
+            document.getElementById('speciesStats').style.display = e.target.checked ? 'block' : 'none';
+            initBoids();
+        });
+
+        // Presets
+        function applyPreset(preset, buttonId) {
+            Object.assign(config, preset);
+
+            document.getElementById('separation').value = preset.separation;
+            document.getElementById('sepValue').textContent = preset.separation.toFixed(1);
+            document.getElementById('alignment').value = preset.alignment;
+            document.getElementById('alignValue').textContent = preset.alignment.toFixed(1);
+            document.getElementById('cohesion').value = preset.cohesion;
+            document.getElementById('cohValue').textContent = preset.cohesion.toFixed(1);
+            document.getElementById('radius').value = preset.neighborRadius;
+            document.getElementById('radiusValue').textContent = preset.neighborRadius;
+            document.getElementById('maxSpeed').value = preset.maxSpeed;
+            document.getElementById('speedValue').textContent = preset.maxSpeed.toFixed(1);
+            document.getElementById('maxForce').value = preset.maxForce;
+            document.getElementById('forceValue').textContent = preset.maxForce.toFixed(2);
+
+            document.querySelectorAll('#presetsSection .preset-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(buttonId)?.classList.add('active');
+        }
+
+        function applySpeciesPreset(preset) {
+            config.chaseStrength = preset.chaseStrength;
+            config.evasionStrength = preset.evasionStrength;
+            config.evasionRadius = preset.evasionRadius;
+
+            document.getElementById('chaseStrength').value = preset.chaseStrength;
+            document.getElementById('chaseStrengthValue').textContent = preset.chaseStrength.toFixed(1);
+            document.getElementById('evasionStrength').value = preset.evasionStrength;
+            document.getElementById('evasionStrengthValue').textContent = preset.evasionStrength.toFixed(1);
+            document.getElementById('evasionRadius').value = preset.evasionRadius;
+            document.getElementById('evasionRadiusValue').textContent = preset.evasionRadius;
+        }
+
+        function clearActivePreset() {
+            document.querySelectorAll('#presetsSection .preset-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        document.getElementById('presetSchool').addEventListener('click', () => applyPreset(presets.school, 'presetSchool'));
+        document.getElementById('presetSwarm').addEventListener('click', () => applyPreset(presets.swarm, 'presetSwarm'));
+        document.getElementById('presetCluster').addEventListener('click', () => applyPreset(presets.cluster, 'presetCluster'));
+
+        document.getElementById('presetHunting')?.addEventListener('click', () => applySpeciesPreset(speciesPresets.hunting));
+        document.getElementById('presetEscape')?.addEventListener('click', () => applySpeciesPreset(speciesPresets.escape));
+        document.getElementById('presetBalanced')?.addEventListener('click', () => applySpeciesPreset(speciesPresets.balanced));
+
+        // Obstacle presets
+        document.getElementById('obstacleScattered')?.addEventListener('click', () => createObstaclePreset('scattered'));
+        document.getElementById('obstacleCorridor')?.addEventListener('click', () => createObstaclePreset('corridor'));
+        document.getElementById('obstacleMaze')?.addEventListener('click', () => createObstaclePreset('maze'));
+        document.getElementById('obstacleCenter')?.addEventListener('click', () => createObstaclePreset('center'));
+        document.getElementById('clearObstacles')?.addEventListener('click', () => { obstacles = []; });
+
+        // Tool buttons
+        function setTool(tool) {
+            config.currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1))?.classList.add('active');
+
+            // Hide all tool settings
+            document.querySelectorAll('#toolSettings > div').forEach(el => el.style.display = 'none');
+            // Show relevant settings
+            const settingsId = tool + 'Settings';
+            document.getElementById(settingsId) && (document.getElementById(settingsId).style.display = 'block');
+
+            // Update mode indicator
+            const indicator = document.getElementById('modeIndicator');
+            if (tool !== 'none') {
+                indicator.textContent = tool.charAt(0).toUpperCase() + tool.slice(1) + ' Mode';
+                indicator.className = 'mode-indicator active ' + tool;
+            } else {
+                indicator.className = 'mode-indicator';
+            }
+        }
+
+        document.getElementById('toolNone').addEventListener('click', () => setTool('none'));
+        document.getElementById('toolAttract').addEventListener('click', () => setTool('attract'));
+        document.getElementById('toolRepel').addEventListener('click', () => setTool('repel'));
+        document.getElementById('toolSpawn').addEventListener('click', () => setTool('spawn'));
+        document.getElementById('toolLaunch').addEventListener('click', () => setTool('launch'));
+        document.getElementById('toolObstacle').addEventListener('click', () => setTool('obstacle'));
+
+        // Pause/Resume
+        const pauseBtn = document.getElementById('pauseBtn');
+        pauseBtn.addEventListener('click', () => {
+            paused = !paused;
+            pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+        });
+
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            initBoids();
+            obstacles = [];
+            startTime = Date.now();
+            paused = false;
+            pauseBtn.textContent = 'Pause';
+        });
+
+        // Collapsible sections
+        document.querySelectorAll('.section-header').forEach(header => {
+            header.addEventListener('click', () => {
+                header.parentElement.classList.toggle('collapsed');
+            });
+        });
+
+        // ==================== MOUSE EVENTS ====================
+        canvas.addEventListener('mousemove', (e) => {
+            mousePos = new Vector(e.clientX, e.clientY);
+
+            // Update hovered obstacle
+            hoveredObstacle = null;
+            for (const obstacle of obstacles) {
+                obstacle.hovered = obstacle.contains(mousePos);
+                if (obstacle.hovered) hoveredObstacle = obstacle;
+            }
+
+            // Update launch preview
+            if (config.currentTool === 'launch' && isDragging && dragStart) {
+                launchPreview = { start: dragStart, end: mousePos };
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mousePos = null;
+            launchPreview = null;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Left click only
+
+            isDragging = true;
+            dragStart = new Vector(e.clientX, e.clientY);
+
+            if (config.currentTool === 'spawn') {
+                spawnBoids(e.clientX, e.clientY, config.spawnCount);
+            }
+
+            if (config.currentTool === 'obstacle') {
+                // Check if clicking on existing obstacle
+                const clicked = obstacles.find(o => o.contains(new Vector(e.clientX, e.clientY)));
+                if (!clicked) {
+                    obstacles.push(new Obstacle(e.clientX, e.clientY, config.obstacleRadius));
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (config.currentTool === 'launch' && dragStart) {
+                const endPos = new Vector(e.clientX, e.clientY);
+                if (Vector.dist(dragStart, endPos) > 20) {
+                    launchBoids(dragStart, endPos, config.burstLaunch);
+                }
+            }
+
+            isDragging = false;
+            dragStart = null;
+            launchPreview = null;
+        });
+
+        // ==================== KEYBOARD EVENTS ====================
+        document.addEventListener('keydown', (e) => {
+            // Prevent shortcuts when typing in inputs
+            if (e.target.tagName === 'INPUT') return;
+
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    paused = !paused;
+                    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+                    break;
+                case 'KeyN': setTool('none'); break;
+                case 'KeyA': setTool('attract'); break;
+                case 'KeyR': setTool('repel'); break;
+                case 'KeyS': setTool('spawn'); break;
+                case 'KeyL': setTool('launch'); break;
+                case 'KeyO': setTool('obstacle'); break;
+                case 'KeyC': obstacles = []; break;
+                case 'Delete':
+                case 'Backspace':
+                    if (hoveredObstacle) {
+                        obstacles = obstacles.filter(o => o !== hoveredObstacle);
+                        hoveredObstacle = null;
+                    }
+                    break;
+            }
+        });
+
+        // ==================== INITIALIZE ====================
+        applyPreset(presets.school, 'presetSchool');
+        initBoids();
+        setTool('none');
+        animate();
+    </script>
+</body>
+</html>
