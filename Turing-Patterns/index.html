@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turing Patterns Explorer</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <canvas id="simulation-canvas" width="256" height="256"></canvas>
+        </div>
+
+        <!-- Control Panel -->
+        <aside class="control-panel">
+            <!-- Header -->
+            <header class="panel-header">
+                <span class="panel-icon">≡</span>
+                <h1>Turing Patterns</h1>
+            </header>
+
+            <!-- Model Section -->
+            <section class="panel-section">
+                <h2 class="section-header">Model</h2>
+                <div class="select-row">
+                    <label for="model-select">Model</label>
+                    <select id="model-select"></select>
+                </div>
+                <div class="select-row">
+                    <label for="preset-select">Preset</label>
+                    <select id="preset-select"></select>
+                </div>
+            </section>
+
+            <!-- Parameters Section -->
+            <section class="panel-section">
+                <h2 class="section-header">Parameters</h2>
+                <div id="parameters-container">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- Visualization Section -->
+            <section class="panel-section">
+                <h2 class="section-header">Visualization</h2>
+                <div class="select-row">
+                    <label for="colormap-select">Color Map</label>
+                    <select id="colormap-select"></select>
+                </div>
+                <div class="select-row">
+                    <label>Channel</label>
+                    <div class="channel-buttons">
+                        <button class="channel-btn" data-channel="0">U</button>
+                        <button class="channel-btn active" data-channel="1">V</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Brush Section -->
+            <section class="panel-section">
+                <h2 class="section-header">Brush</h2>
+                <div class="param-row">
+                    <label for="brush-size">Size</label>
+                    <div class="slider-container">
+                        <input type="range" id="brush-size" min="2" max="30" value="10" step="1">
+                        <span class="param-value" id="brush-size-value">10</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Simulation Section -->
+            <section class="panel-section">
+                <h2 class="section-header">Simulation</h2>
+                <div class="button-row">
+                    <button class="control-btn" id="play-pause-btn">▶ Play</button>
+                    <button class="control-btn reset-btn" id="reset-btn">⟳ Reset</button>
+                </div>
+                <div class="param-row">
+                    <label for="steps-per-frame">Steps/Frame</label>
+                    <div class="slider-container">
+                        <input type="range" id="steps-per-frame" min="1" max="16" value="4" step="1">
+                        <span class="param-value" id="steps-per-frame-value">4</span>
+                    </div>
+                </div>
+                <div class="stats-row">
+                    <span>Step:</span>
+                    <span class="stat-value" id="step-counter">0</span>
+                </div>
+                <div class="stats-row">
+                    <span>FPS:</span>
+                    <span class="stat-value" id="fps-display">0</span>
+                </div>
+            </section>
+
+            <!-- Keyboard Hints -->
+            <footer class="keyboard-hints">
+                <p><span class="key">Space</span> Play / Pause</p>
+                <p><span class="key">R</span> Reset</p>
+                <p><span class="key">1-9</span> Load Presets</p>
+            </footer>
+        </aside>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
