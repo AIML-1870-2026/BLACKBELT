@@ -56,13 +56,16 @@ body {
     justify-content: center;
     padding: 20px;
     background: radial-gradient(ellipse at center, #0f0f20 0%, #0a0a0f 100%);
+    min-width: 0;
+    min-height: 0;
 }
 
 #simulation-canvas {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+    width: min(calc(100vh - 40px), calc(100vw - 320px));
+    height: min(calc(100vh - 40px), calc(100vw - 320px));
+    max-width: calc(100vw - 320px);
+    max-height: calc(100vh - 40px);
+    aspect-ratio: 1 / 1;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     border-radius: 4px;
@@ -374,6 +377,13 @@ input[type="range"]::-moz-range-thumb {
     .canvas-container {
         flex: 1;
         padding: 10px;
+    }
+
+    #simulation-canvas {
+        width: min(calc(50vh - 20px), calc(100vw - 20px));
+        height: min(calc(50vh - 20px), calc(100vw - 20px));
+        max-width: calc(100vw - 20px);
+        max-height: calc(50vh - 20px);
     }
 }
 
