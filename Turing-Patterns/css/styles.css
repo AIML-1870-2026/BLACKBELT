@@ -51,21 +51,17 @@ body {
 /* Canvas Container */
 .canvas-container {
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     padding: 20px;
     background: radial-gradient(ellipse at center, #0f0f20 0%, #0a0a0f 100%);
-    min-width: 0;
-    min-height: 0;
+    overflow: hidden;
 }
 
 #simulation-canvas {
-    width: min(calc(100vh - 40px), calc(100vw - 320px));
-    height: min(calc(100vh - 40px), calc(100vw - 320px));
-    max-width: calc(100vw - 320px);
-    max-height: calc(100vh - 40px);
-    aspect-ratio: 1 / 1;
+    --size: min(calc(100vw - 320px - 40px), calc(100vh - 40px));
+    width: var(--size);
+    height: var(--size);
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     border-radius: 4px;
@@ -380,10 +376,9 @@ input[type="range"]::-moz-range-thumb {
     }
 
     #simulation-canvas {
-        width: min(calc(50vh - 20px), calc(100vw - 20px));
-        height: min(calc(50vh - 20px), calc(100vw - 20px));
-        max-width: calc(100vw - 20px);
-        max-height: calc(50vh - 20px);
+        --size: min(calc(100vw - 20px), calc(50vh - 20px));
+        width: var(--size);
+        height: var(--size);
     }
 }
 
