@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julia Set Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- Info Bar -->
+        <div class="info-bar">
+            <div class="info-group">
+                <div class="info-item">
+                    <span class="info-label">c =</span>
+                    <span class="info-value" id="infoC">-0.700 + 0.270i</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Cursor:</span>
+                    <span class="info-value" id="infoCursor">0.000 + 0.000i</span>
+                </div>
+            </div>
+            <div class="info-group">
+                <div class="info-item">
+                    <span class="info-label">Zoom:</span>
+                    <span class="info-value" id="infoZoom">1.0x</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Iterations:</span>
+                    <span class="info-value" id="infoIterations">200</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Render:</span>
+                    <span class="info-value" id="infoRenderTime">0ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Mandelbrot Canvas (for split view) -->
+            <div class="canvas-container canvas-wrapper hidden" id="mandelbrotContainer">
+                <span class="canvas-label">Mandelbrot Set</span>
+                <canvas id="mandelbrotCanvas"></canvas>
+                <div class="crosshair" id="mandelbrotCrosshair">
+                    <div class="crosshair-ring"></div>
+                </div>
+            </div>
+
+            <!-- Julia Canvas -->
+            <div class="canvas-container" id="juliaContainer">
+                <span class="canvas-label">Julia Set</span>
+                <canvas id="juliaCanvas"></canvas>
+
+                <!-- Orbit Overlay -->
+                <canvas class="orbit-overlay" id="orbitCanvas"></canvas>
+
+                <!-- Fullscreen Button -->
+                <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen (F)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                </button>
+
+                <!-- Minimap -->
+                <div class="minimap hidden" id="minimap">
+                    <canvas id="minimapCanvas"></canvas>
+                    <div class="minimap-viewport" id="minimapViewport"></div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="loading-indicator" id="loadingIndicator">
+                    <div class="loading-spinner"></div>
+                    <span>Rendering...</span>
+                </div>
+
+                <!-- Orbit Controls -->
+                <div class="orbit-controls hidden" id="orbitControls">
+                    <button class="btn btn-icon" id="orbitStep" title="Step">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 4l10 8-10 8V4z"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-icon" id="orbitPlay" title="Play/Pause">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5,3 19,12 5,21"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-icon" id="orbitReset" title="Reset">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                        </svg>
+                    </button>
+                    <button class="btn" id="orbitExit">Exit Orbit Mode</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel" id="controlPanel">
+            <div class="panel-header">
+                <h2>Controls</h2>
+                <button class="panel-close" id="panelClose">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="panel-content">
+                <!-- C Value -->
+                <div class="control-section">
+                    <div class="section-title">Complex Constant c</div>
+                    <div class="c-value-display">
+                        c = <span class="real" id="displayCReal">-0.700</span> + <span class="imag" id="displayCImag">0.270</span>i
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">Real</span>
+                        <input type="range" id="cRealSlider" min="-2" max="2" step="0.001" value="-0.7">
+                        <span class="control-value" id="cRealValue">-0.700</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">Imag</span>
+                        <input type="range" id="cImagSlider" min="-2" max="2" step="0.001" value="0.27015">
+                        <span class="control-value" id="cImagValue">0.270</span>
+                    </div>
+                </div>
+
+                <!-- Iterations -->
+                <div class="control-section">
+                    <div class="section-title">Max Iterations</div>
+                    <div class="control-row">
+                        <input type="range" id="iterationsSlider" min="50" max="1000" step="10" value="200">
+                        <span class="control-value" id="iterationsValue">200</span>
+                    </div>
+                </div>
+
+                <!-- Color Palette -->
+                <div class="control-section">
+                    <div class="section-title">Color Palette</div>
+                    <div class="btn-group">
+                        <button class="btn palette-btn classic active" data-palette="classic" title="Classic"></button>
+                        <button class="btn palette-btn inferno" data-palette="inferno" title="Inferno"></button>
+                        <button class="btn palette-btn ocean" data-palette="ocean" title="Ocean"></button>
+                        <button class="btn palette-btn cosmic" data-palette="cosmic" title="Cosmic"></button>
+                        <button class="btn palette-btn grayscale" data-palette="grayscale" title="Grayscale"></button>
+                    </div>
+                </div>
+
+                <!-- View Options -->
+                <div class="control-section">
+                    <div class="section-title">View Options</div>
+                    <div class="btn-group">
+                        <button class="btn" id="splitViewBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <line x1="12" y1="3" x2="12" y2="21"/>
+                            </svg>
+                            Split View
+                        </button>
+                        <button class="btn" id="heatmapBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                            Heatmap
+                        </button>
+                    </div>
+                    <div class="control-row" id="heatmapOpacityRow" style="display: none; margin-top: 10px;">
+                        <span class="control-label">Opacity</span>
+                        <input type="range" id="heatmapOpacity" min="0" max="100" step="5" value="50">
+                        <span class="control-value" id="heatmapOpacityValue">50%</span>
+                    </div>
+                </div>
+
+                <!-- Educational Mode -->
+                <div class="control-section">
+                    <div class="section-title">Educational</div>
+                    <div class="btn-group">
+                        <button class="btn" id="orbitModeBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>
+                            </svg>
+                            Orbit Mode
+                        </button>
+                    </div>
+                    <div id="orbitInfo" style="display: none; margin-top: 10px;">
+                        <div class="section-title">Orbit Data</div>
+                        <div class="iteration-table" id="iterationTable">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>n</th>
+                                        <th>Re(z)</th>
+                                        <th>Im(z)</th>
+                                        <th>|z|</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="iterationTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Animation -->
+                <div class="control-section">
+                    <div class="section-title">Animation</div>
+                    <div class="animation-controls">
+                        <button class="btn" id="animPlayBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                            Play
+                        </button>
+                        <select id="animModeSelect" class="btn" style="padding: 6px 10px;">
+                            <option value="circle">Circle</option>
+                            <option value="lissajous">Lissajous</option>
+                            <option value="custom">Custom Path</option>
+                        </select>
+                    </div>
+                    <div class="control-row" style="margin-top: 10px;">
+                        <span class="control-label">Speed</span>
+                        <input type="range" id="animSpeed" min="0.1" max="3" step="0.1" value="1">
+                        <span class="control-value" id="animSpeedValue">1.0x</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">Radius</span>
+                        <input type="range" id="animRadius" min="0.05" max="1" step="0.05" value="0.3">
+                        <span class="control-value" id="animRadiusValue">0.30</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="control-section">
+                    <div class="section-title">Actions</div>
+                    <div class="btn-group">
+                        <button class="btn primary" id="resetViewBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                            Reset View
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Toggle -->
+        <button class="panel-toggle" id="panelToggle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+
+        <!-- Presets Gallery -->
+        <div class="presets-container" id="presetsContainer">
+            <button class="presets-toggle" id="presetsToggle">Presets</button>
+            <div class="presets-header">
+                <h3>Preset Gallery</h3>
+            </div>
+            <div class="presets-gallery" id="presetsGallery">
+                <!-- Presets will be generated by JS -->
+            </div>
+        </div>
+
+        <!-- Help Button -->
+        <button class="help-btn" id="helpBtn" title="Keyboard Shortcuts (?)">?</button>
+
+        <!-- Keyboard Shortcuts Modal -->
+        <div class="modal-overlay" id="shortcutsModal">
+            <div class="modal">
+                <h2>Keyboard Shortcuts</h2>
+                <div class="shortcut-list">
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>Arrow Keys</kbd></span>
+                        <span class="shortcut-desc">Nudge c by 0.01</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>+</kbd> / <kbd>-</kbd></span>
+                        <span class="shortcut-desc">Zoom in / out</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>Space</kbd></span>
+                        <span class="shortcut-desc">Play / pause animation</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>1</kbd> - <kbd>5</kbd></span>
+                        <span class="shortcut-desc">Switch color palette</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>F</kbd></span>
+                        <span class="shortcut-desc">Toggle fullscreen</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>M</kbd></span>
+                        <span class="shortcut-desc">Toggle Mandelbrot split view</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>E</kbd></span>
+                        <span class="shortcut-desc">Toggle orbit mode</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>R</kbd></span>
+                        <span class="shortcut-desc">Reset view to default</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>?</kbd></span>
+                        <span class="shortcut-desc">Show this help</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="shortcut-key"><kbd>Esc</kbd></span>
+                        <span class="shortcut-desc">Close modal / exit fullscreen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
