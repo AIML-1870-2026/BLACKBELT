@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Neuron | Taekwondo Sparring Response System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Background Texture Overlays -->
+    <div class="bg-grain"></div>
+    <div class="bg-vignette"></div>
+    <div class="bg-warm-glow"></div>
+
+    <!-- Background Watermark Silhouettes -->
+    <svg class="bg-silhouette silhouette-kick" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+        <path d="M200,480 L195,380 L180,320 Q175,300 185,280 L190,250
+                 Q195,230 200,210 L205,180 Q210,160 200,145 L195,130
+                 Q190,115 195,100 Q200,85 210,80 Q220,75 225,80
+                 Q230,90 225,100 L220,115 Q215,130 220,145
+                 L280,160 Q320,155 350,140 L370,130
+                 Q375,128 378,132 Q380,138 375,142
+                 L340,160 Q300,180 260,185 L225,195
+                 Q230,210 228,230 L225,260 Q220,280 215,300
+                 L210,340 L208,380 L215,480
+                 M190,250 L140,270 Q110,280 85,300 L65,320
+                 Q60,325 55,320 Q50,315 55,310
+                 L80,290 Q110,265 145,255 L185,245"
+              fill="currentColor"/>
+    </svg>
+
+    <svg class="bg-silhouette silhouette-guard" viewBox="0 0 350 500" xmlns="http://www.w3.org/2000/svg">
+        <path d="M180,480 L175,400 L165,350 Q160,330 165,310 L170,280
+                 Q172,265 170,250 L165,230 Q160,215 165,200
+                 L170,185 Q175,170 172,155 L168,140
+                 Q165,125 170,110 Q178,95 188,90 Q198,85 205,92
+                 Q210,100 205,112 L200,125 Q195,135 198,150
+                 L202,165 L215,150 Q225,138 240,130 L255,125
+                 Q260,122 263,127 L260,135 Q250,145 235,158
+                 L215,175 Q210,185 208,200 L205,230
+                 Q202,250 205,270 L210,300 Q215,320 212,340
+                 L208,380 L210,480
+                 M165,230 L145,215 Q130,205 118,200 L105,198
+                 Q98,197 95,202 Q92,208 98,212
+                 L115,215 Q132,220 148,232 L162,245"
+              fill="currentColor"/>
+    </svg>
+
+    <svg class="bg-silhouette silhouette-sidekick" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+        <path d="M150,280 L155,220 L160,180 Q162,165 158,150
+                 L155,135 Q152,120 158,108 L165,95
+                 Q172,82 182,78 Q192,75 198,82 Q202,90 198,100
+                 L192,110 Q188,118 192,130 L196,145
+                 Q200,155 210,160 L280,162 Q340,160 400,155
+                 L450,148 Q480,145 510,148 L540,155
+                 Q548,158 545,162 Q540,168 532,165
+                 L500,160 Q470,158 440,160 L380,168
+                 Q320,175 260,178 L210,182
+                 Q205,195 208,215 L212,250 L215,280
+                 M155,135 L130,120 Q115,110 100,108
+                 Q92,107 90,112 Q88,118 94,122
+                 L112,125 Q130,130 148,142"
+              fill="currentColor"/>
+    </svg>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title"><span class="title-accent">DECISION</span> NEURON</h1>
+            <p class="subtitle">TAEKWONDO SPARRING RESPONSE SYSTEM</p>
+            <div class="header-rule"></div>
+        </header>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button class="view-btn active" data-view="simple">SIMPLE</button>
+            <button class="view-btn" data-view="detailed">DETAILED</button>
+        </div>
+
+        <!-- Main Grid -->
+        <main class="main-grid">
+            <!-- Input Panel -->
+            <section class="panel input-panel">
+                <h2 class="panel-title">
+                    <span class="panel-indicator"></span>
+                    INCOMING ATTACK
+                </h2>
+
+                <!-- Attack Grid -->
+                <div class="attack-grid" id="attackGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Attack Illustration -->
+                <div class="attack-illustration" id="attackIllustration">
+                    <svg viewBox="0 0 180 220" id="attackSvg">
+                        <!-- Populated by JS -->
+                    </svg>
+                    <div class="attack-label" id="attackLabel"></div>
+                </div>
+
+                <!-- Target Zone -->
+                <div class="input-section">
+                    <h3 class="section-label">TARGET ZONE</h3>
+                    <div class="body-diagram-container">
+                        <svg viewBox="0 0 120 280" class="body-diagram" id="bodyDiagram">
+                            <!-- Hit areas (invisible, for easier clicking) -->
+                            <rect class="zone-hitarea" data-zone="head" x="0" y="0" width="120" height="65" fill="transparent"/>
+                            <rect class="zone-hitarea" data-zone="body" x="0" y="65" width="120" height="105" fill="transparent"/>
+                            <rect class="zone-hitarea" data-zone="legs" x="0" y="170" width="120" height="110" fill="transparent"/>
+
+                            <!-- HEAD zone -->
+                            <g class="zone-group zone-head" data-zone="head">
+                                <ellipse cx="60" cy="30" rx="22" ry="28"/>
+                                <line x1="48" y1="28" x2="52" y2="28" class="face-feature"/>
+                                <line x1="68" y1="28" x2="72" y2="28" class="face-feature"/>
+                                <line x1="60" y1="32" x2="60" y2="38" class="face-feature"/>
+                            </g>
+
+                            <!-- Neck -->
+                            <line x1="60" y1="58" x2="60" y2="70" class="body-line"/>
+
+                            <!-- BODY zone -->
+                            <g class="zone-group zone-body" data-zone="body">
+                                <path d="M35,72 L30,78 L28,120 L32,155 L42,165 L60,170 L78,165
+                                         L88,155 L92,120 L90,78 L85,72 Z"/>
+                                <line x1="35" y1="72" x2="15" y2="80" class="body-line"/>
+                                <line x1="85" y1="72" x2="105" y2="80" class="body-line"/>
+                                <path d="M15,80 L10,115 L8,145 L12,148 L15,145 L18,115 L22,90" class="arm-path"/>
+                                <path d="M105,80 L110,115 L112,145 L108,148 L105,145 L102,115 L98,90" class="arm-path"/>
+                            </g>
+
+                            <!-- LEGS zone -->
+                            <g class="zone-group zone-legs" data-zone="legs">
+                                <path d="M42,165 L38,200 L35,235 L32,260 L28,275 L38,278 L42,270
+                                         L45,235 L48,200 L50,170"/>
+                                <path d="M78,165 L82,200 L85,235 L88,260 L92,275 L82,278 L78,270
+                                         L75,235 L72,200 L70,170"/>
+                            </g>
+                        </svg>
+                        <div class="zone-label" id="zoneLabel">BODY</div>
+                    </div>
+                    <div class="zone-buttons" id="zoneButtons">
+                        <button class="zone-btn" data-zone="head">Head 🎯</button>
+                        <button class="zone-btn active" data-zone="body">Body 🫁</button>
+                        <button class="zone-btn" data-zone="legs">Legs 🦵</button>
+                    </div>
+                </div>
+
+                <!-- Stance Toggle -->
+                <div class="input-section">
+                    <h3 class="section-label">YOUR STANCE</h3>
+                    <div class="stance-toggle" id="stanceToggle">
+                        <button class="stance-btn active" data-stance="orthodox">Orthodox (L)</button>
+                        <button class="stance-btn" data-stance="southpaw">Southpaw (R)</button>
+                    </div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="input-section">
+                    <h3 class="section-label">DISTANCE</h3>
+                    <div class="slider-container">
+                        <input type="range" id="distSlider" min="0" max="2" step="1" value="1" class="slider">
+                        <div class="slider-labels">
+                            <span>Close</span>
+                            <span>Mid</span>
+                            <span>Far</span>
+                        </div>
+                        <div class="slider-value" id="distValue">Mid</div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <h3 class="section-label">OPPONENT SPEED</h3>
+                    <div class="slider-container">
+                        <input type="range" id="speedSlider" min="0" max="2" step="1" value="1" class="slider">
+                        <div class="slider-labels">
+                            <span>Slow</span>
+                            <span>Medium</span>
+                            <span>Fast</span>
+                        </div>
+                        <div class="slider-value" id="speedValue">Medium</div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <h3 class="section-label">YOUR ENERGY</h3>
+                    <div class="slider-container">
+                        <input type="range" id="energySlider" min="10" max="100" step="5" value="75" class="slider">
+                        <div class="slider-value energy-value" id="energyValue">75%</div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <h3 class="section-label">EXPERIENCE LEVEL</h3>
+                    <div class="slider-container">
+                        <input type="range" id="expSlider" min="0" max="2" step="1" value="1" class="slider">
+                        <div class="slider-labels">
+                            <span>Beginner</span>
+                            <span>Intermediate</span>
+                            <span>Advanced</span>
+                        </div>
+                        <div class="slider-value" id="expValue">Intermediate</div>
+                    </div>
+                </div>
+
+                <!-- Fire Button -->
+                <button class="fire-btn" id="fireBtn" disabled>
+                    FIRE NEURON
+                </button>
+            </section>
+
+            <!-- Neural Canvas -->
+            <section class="canvas-section">
+                <canvas id="neuralCanvas"></canvas>
+                <div class="timing-display" id="timingDisplay">
+                    Neural processing: <span class="timing-value">---</span>ms · Decision confidence: <span class="timing-value">--</span>%
+                </div>
+            </section>
+
+            <!-- Output Panel -->
+            <section class="panel output-panel">
+                <h2 class="panel-title">
+                    <span class="panel-indicator indicator-gold"></span>
+                    NEURAL OUTPUT
+                </h2>
+
+                <!-- Empty State -->
+                <div class="output-empty" id="outputEmpty">
+                    <div class="empty-icon">🥊</div>
+                    <p>Select an incoming attack and configure situational parameters, then fire the decision neuron to see the optimal response.</p>
+                </div>
+
+                <!-- Results Container -->
+                <div class="output-results hidden" id="outputResults">
+                    <!-- Block Card -->
+                    <div class="result-card card-block">
+                        <div class="card-label">RECOMMENDED BLOCK</div>
+                        <div class="card-value" id="blockValue">---</div>
+                        <div class="card-desc" id="blockDesc">---</div>
+                    </div>
+
+                    <!-- Counter Card -->
+                    <div class="result-card card-counter">
+                        <div class="card-label">OPTIMAL COUNTER</div>
+                        <div class="card-value" id="counterValue">---</div>
+                        <div class="card-desc" id="counterDesc">---</div>
+                    </div>
+
+                    <!-- Confidence Card -->
+                    <div class="result-card card-confidence">
+                        <div class="card-label">DECISION CONFIDENCE</div>
+                        <div class="card-value confidence-value" id="confidenceValue">--%</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Alternatives Card -->
+                    <div class="result-card card-alternatives">
+                        <div class="card-label">ALTERNATIVE OPTIONS</div>
+                        <div class="alternatives-list" id="alternativesList">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Detailed View Content -->
+                    <div class="detailed-content hidden" id="detailedContent">
+                        <!-- Reasoning Box -->
+                        <div class="reasoning-box">
+                            <div class="reasoning-title">NEURAL REASONING</div>
+                            <div class="reasoning-text" id="reasoningText">---</div>
+                        </div>
+
+                        <!-- Block Weights Table -->
+                        <div class="weights-table-container">
+                            <div class="weights-title">BLOCK NEURON WEIGHTS</div>
+                            <table class="weights-table" id="blockWeightsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Technique</th>
+                                        <th>Weight</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Counter Weights Table -->
+                        <div class="weights-table-container">
+                            <div class="weights-title">COUNTER NEURON WEIGHTS</div>
+                            <table class="weights-table" id="counterWeightsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Technique</th>
+                                        <th>Weight</th>
+                                        <th>Energy</th>
+                                        <th>Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div class="processing-overlay hidden" id="processingOverlay">
+        <div class="processing-content">
+            <div class="processing-bar">
+                <div class="processing-fill" id="processingFill"></div>
+            </div>
+            <div class="processing-text">PROCESSING...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/engine.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/graphics.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
