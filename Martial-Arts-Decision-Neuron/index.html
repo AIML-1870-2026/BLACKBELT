@@ -70,16 +70,17 @@
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1 class="title"><span class="title-accent">DECISION</span> NEURON</h1>
-            <p class="subtitle">TAEKWONDO SPARRING RESPONSE SYSTEM</p>
-            <div class="header-rule"></div>
+            <div class="header-content">
+                <h1 class="title"><span class="title-accent">DECISION</span> NEURON</h1>
+                <p class="subtitle">TAEKWONDO SPARRING RESPONSE SYSTEM</p>
+            </div>
+            <!-- View Toggle -->
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="simple">SIMPLE</button>
+                <button class="view-btn" data-view="detailed">DETAILED</button>
+            </div>
         </header>
-
-        <!-- View Toggle -->
-        <div class="view-toggle">
-            <button class="view-btn active" data-view="simple">SIMPLE</button>
-            <button class="view-btn" data-view="detailed">DETAILED</button>
-        </div>
+        <div class="header-rule"></div>
 
         <!-- Main Grid -->
         <main class="main-grid">
@@ -90,17 +91,9 @@
                     INCOMING ATTACK
                 </h2>
 
-                <!-- Attack Grid -->
+                <!-- Attack Grid (5-column) -->
                 <div class="attack-grid" id="attackGrid">
                     <!-- Populated by JS -->
-                </div>
-
-                <!-- Attack Illustration -->
-                <div class="attack-illustration" id="attackIllustration">
-                    <svg viewBox="0 0 180 220" id="attackSvg">
-                        <!-- Populated by JS -->
-                    </svg>
-                    <div class="attack-label" id="attackLabel"></div>
                 </div>
 
                 <!-- Target Zone -->
@@ -214,9 +207,20 @@
                 </button>
             </section>
 
-            <!-- Neural Canvas -->
-            <section class="canvas-section">
-                <canvas id="neuralCanvas"></canvas>
+            <!-- Center Column -->
+            <section class="center-column">
+                <!-- Attack Illustration (moved here from input panel) -->
+                <div class="attack-illustration" id="attackIllustration">
+                    <svg viewBox="0 0 200 300" id="attackSvg">
+                        <!-- Populated by JS -->
+                    </svg>
+                    <div class="attack-label" id="attackLabel"></div>
+                </div>
+
+                <!-- Neural Canvas -->
+                <div class="canvas-wrapper">
+                    <canvas id="neuralCanvas"></canvas>
+                </div>
                 <div class="timing-display" id="timingDisplay">
                     Neural processing: <span class="timing-value">---</span>ms · Decision confidence: <span class="timing-value">--</span>%
                 </div>

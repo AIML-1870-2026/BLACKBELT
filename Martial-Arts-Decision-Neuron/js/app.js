@@ -3,6 +3,20 @@
    Main Application Logic
    ============================================ */
 
+// Abbreviated attack labels for compact 5-column grid
+const attackLabels = {
+    jab: 'JAB',
+    cross: 'CROSS',
+    hook: 'HOOK',
+    uppercut: 'UPPER',
+    front_kick: 'FRONT',
+    roundhouse: 'ROUND',
+    side_kick: 'SIDE',
+    spinning_back: 'SPIN',
+    axe_kick: 'AXE',
+    push_kick: 'PUSH'
+};
+
 // Application state
 const state = {
     selectedAttack: null,
@@ -97,13 +111,13 @@ function cacheElements() {
 }
 
 /**
- * Build the attack selection grid
+ * Build the attack selection grid with abbreviated labels
  */
 function buildAttackGrid() {
     elements.attackGrid.innerHTML = attacks.map(attack => `
         <button class="attack-btn" data-attack="${attack.id}">
             <span class="emoji">${attack.emoji}</span>
-            <span>${attack.name}</span>
+            <span>${attackLabels[attack.id] || attack.name}</span>
         </button>
     `).join('');
 
