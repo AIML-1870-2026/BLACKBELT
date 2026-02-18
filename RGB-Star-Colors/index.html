@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RGB Color Studio — Stellar Spectrometer Array</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Starfield Canvas -->
+    <canvas id="starfield-bg"></canvas>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="header-title">RGB COLOR STUDIO</h1>
+        <p class="header-subtitle">STELLAR SPECTROMETER ARRAY — DEEP SPACE OBSERVATION PLATFORM</p>
+        <div class="header-line"></div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="spectrometer">SPECTROMETER</button>
+        <button class="tab-btn" data-tab="analysis">ANALYSIS</button>
+        <button class="tab-btn" data-tab="starchart">STAR CHART</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Tab 1: SPECTROMETER -->
+        <section id="spectrometer" class="tab-panel active">
+            <div class="spectrometer-layout">
+                <!-- Left: Star Orb Preview -->
+                <div class="orb-container">
+                    <div class="star-orb" id="star-orb">
+                        <div class="orb-inner"></div>
+                    </div>
+                    <p class="orb-label">EMISSION PREVIEW</p>
+                </div>
+
+                <!-- Right: Controls -->
+                <div class="controls-container">
+                    <div class="wavelength-controls">
+                        <h3 class="section-label">WAVELENGTH CHANNELS</h3>
+
+                        <!-- Red Channel -->
+                        <div class="channel-control">
+                            <label class="channel-label">
+                                <span class="channel-name">R — CHANNEL</span>
+                                <span class="channel-wavelength">620–750 nm</span>
+                            </label>
+                            <div class="slider-row">
+                                <input type="range" id="slider-r" class="slider slider-red" min="0" max="255" value="128">
+                                <span class="slider-value" id="value-r">128</span>
+                            </div>
+                        </div>
+
+                        <!-- Green Channel -->
+                        <div class="channel-control">
+                            <label class="channel-label">
+                                <span class="channel-name">G — CHANNEL</span>
+                                <span class="channel-wavelength">495–570 nm</span>
+                            </label>
+                            <div class="slider-row">
+                                <input type="range" id="slider-g" class="slider slider-green" min="0" max="255" value="128">
+                                <span class="slider-value" id="value-g">128</span>
+                            </div>
+                        </div>
+
+                        <!-- Blue Channel -->
+                        <div class="channel-control">
+                            <label class="channel-label">
+                                <span class="channel-name">B — CHANNEL</span>
+                                <span class="channel-wavelength">435–495 nm</span>
+                            </label>
+                            <div class="slider-row">
+                                <input type="range" id="slider-b" class="slider slider-blue" min="0" max="255" value="128">
+                                <span class="slider-value" id="value-b">128</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="control-buttons">
+                        <button class="btn btn-primary" id="btn-randomize">RANDOMIZE SIGNAL</button>
+                        <button class="btn btn-toggle" id="btn-autocycle">AUTO-CYCLE [OFF]</button>
+                    </div>
+
+                    <!-- Telemetry Readouts -->
+                    <div class="telemetry">
+                        <h3 class="section-label">TELEMETRY READOUTS</h3>
+                        <div class="readout-grid">
+                            <div class="readout">
+                                <span class="readout-label">SPECTRAL SIG</span>
+                                <span class="readout-value" id="readout-hex">#808080</span>
+                            </div>
+                            <div class="readout">
+                                <span class="readout-label">EMISSION RGB</span>
+                                <span class="readout-value" id="readout-rgb">rgb(128, 128, 128)</span>
+                            </div>
+                            <div class="readout">
+                                <span class="readout-label">FREQUENCY HSL</span>
+                                <span class="readout-value" id="readout-hsl">hsl(0, 0%, 50%)</span>
+                            </div>
+                            <div class="readout readout-wide">
+                                <span class="readout-label">STELLAR CLASS</span>
+                                <span class="readout-value stellar-class" id="readout-class">CLASS D — WHITE DWARF</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transmit Button -->
+                    <button class="btn btn-transmit" id="btn-transmit">TRANSMIT TO ANALYSIS →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: ANALYSIS -->
+        <section id="analysis" class="tab-panel">
+            <div class="analysis-layout">
+                <!-- Top Row: Scanner and Generator -->
+                <div class="analysis-top">
+                    <!-- Left: Spectral Field Scanner -->
+                    <div class="panel scanner-panel">
+                        <h3 class="section-label">SPECTRAL FIELD SCANNER</h3>
+                        <div class="scanner-canvas-container">
+                            <canvas id="gradient-canvas" width="300" height="200"></canvas>
+                            <div class="canvas-cursor" id="canvas-cursor"></div>
+                        </div>
+                        <div class="hue-bar-container">
+                            <label class="channel-label">EMISSION BAND SELECTOR</label>
+                            <div class="hue-bar-wrapper">
+                                <canvas id="hue-bar" width="300" height="24"></canvas>
+                                <div class="hue-cursor" id="hue-cursor"></div>
+                            </div>
+                        </div>
+                        <div class="scanner-preview">
+                            <div class="preview-swatch" id="scanner-swatch"></div>
+                            <div class="preview-info">
+                                <span class="preview-hex" id="scanner-hex">#FF0000</span>
+                                <span class="preview-class" id="scanner-class">CLASS M — RED GIANT</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" id="btn-load-spectrometer">LOAD INTO SPECTROMETER</button>
+                    </div>
+
+                    <!-- Right: Harmonic Band Generator -->
+                    <div class="panel generator-panel">
+                        <h3 class="section-label">HARMONIC BAND GENERATOR</h3>
+                        <div class="source-display">
+                            <div class="source-swatch" id="source-swatch"></div>
+                            <div class="source-info">
+                                <span class="source-hex" id="source-hex">#808080</span>
+                                <span class="source-class" id="source-class">CLASS D — WHITE DWARF</span>
+                            </div>
+                        </div>
+                        <div class="band-selector">
+                            <button class="btn btn-band active" data-scheme="complementary">INVERSE BAND</button>
+                            <button class="btn btn-band" data-scheme="analogous">ADJACENT BANDS</button>
+                            <button class="btn btn-band" data-scheme="triadic">TRIAD RESONANCE</button>
+                            <button class="btn btn-band" data-scheme="tetradic">QUAD RESONANCE</button>
+                        </div>
+                        <div class="scheme-swatches" id="scheme-swatches">
+                            <!-- Generated swatches will appear here -->
+                        </div>
+                        <button class="btn btn-primary" id="btn-catalog-all">CATALOG ALL BANDS</button>
+                    </div>
+                </div>
+
+                <!-- Bottom: Star Catalog -->
+                <div class="panel catalog-panel">
+                    <div class="catalog-header">
+                        <h3 class="section-label">STAR CATALOG — <span id="catalog-count">0</span>/20 SPECIMENS</h3>
+                        <div class="catalog-actions">
+                            <button class="btn btn-small" id="btn-copy-all">COPY ALL SIGNATURES</button>
+                            <button class="btn btn-small btn-danger" id="btn-clear-catalog">CLEAR CATALOG</button>
+                        </div>
+                    </div>
+                    <div class="catalog-grid" id="catalog-grid">
+                        <!-- Catalog entries will appear here -->
+                        <div class="catalog-empty" id="catalog-empty">NO SPECIMENS CATALOGUED</div>
+                    </div>
+                </div>
+
+                <!-- Clear Confirmation Modal -->
+                <div class="modal" id="clear-modal">
+                    <div class="modal-content">
+                        <p class="modal-text">CONFIRM PURGE?</p>
+                        <div class="modal-buttons">
+                            <button class="btn btn-danger" id="btn-confirm-clear">YES</button>
+                            <button class="btn btn-secondary" id="btn-cancel-clear">NO</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: STAR CHART -->
+        <section id="starchart" class="tab-panel">
+            <div class="starchart-container">
+                <canvas id="starchart-canvas"></canvas>
+                <div class="star-tooltip" id="star-tooltip">
+                    <div class="tooltip-designation" id="tooltip-designation">NGC-FFFFFF</div>
+                    <div class="tooltip-hex" id="tooltip-hex">#FFFFFF</div>
+                    <div class="tooltip-rgb" id="tooltip-rgb">rgb(255, 255, 255)</div>
+                    <div class="tooltip-class" id="tooltip-class">CLASS A — WHITE STAR</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-message" id="toast-message"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
