@@ -1005,6 +1005,13 @@ function switchTab(tabName) {
     tabPanels.forEach(panel => {
         panel.classList.toggle('active', panel.id === tabName);
     });
+
+    // Resize star chart when tab becomes visible
+    if (tabName === 'starchart') {
+        setTimeout(() => {
+            resizeStarChart();
+        }, 10);
+    }
 }
 
 tabBtns.forEach(btn => {
