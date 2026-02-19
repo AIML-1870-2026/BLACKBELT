@@ -1025,13 +1025,7 @@ tabBtns.forEach(btn => {
 // 10. VISION DEFICIENCY SIMULATOR
 // =========================================
 
-const visionButtons = document.querySelectorAll('.btn-vision');
-const visionNormalSwatches = document.getElementById('vision-normal');
-const visionSimulatedSwatches = document.getElementById('vision-simulated');
-const visionSimulatedRow = document.getElementById('vision-simulated-row');
-const visionSimLabel = document.getElementById('vision-sim-label');
-const visionEmptyNormal = document.getElementById('vision-empty-normal');
-
+let visionButtons, visionNormalSwatches, visionSimulatedSwatches, visionSimulatedRow, visionSimLabel, visionEmptyNormal;
 let activeVisionMode = null;
 
 // Color Vision Deficiency Transformation Matrices (Brettel/Viénot)
@@ -1062,6 +1056,17 @@ const CVD_MATRICES = {
     }
 };
 
+function initVisionSimulator() {
+    visionButtons = document.querySelectorAll('.btn-vision');
+    visionNormalSwatches = document.getElementById('vision-normal');
+    visionSimulatedSwatches = document.getElementById('vision-simulated');
+    visionSimulatedRow = document.getElementById('vision-simulated-row');
+    visionSimLabel = document.getElementById('vision-sim-label');
+    visionEmptyNormal = document.getElementById('vision-empty-normal');
+
+    visionButtons.forEach(btn => btn.addEventListener('click', handleVisionModeToggle));
+}
+
 function transformColorForCVD(r, g, b, matrix) {
     const newR = Math.min(255, Math.max(0, Math.round(matrix[0][0] * r + matrix[0][1] * g + matrix[0][2] * b)));
     const newG = Math.min(255, Math.max(0, Math.round(matrix[1][0] * r + matrix[1][1] * g + matrix[1][2] * b)));
@@ -1070,6 +1075,8 @@ function transformColorForCVD(r, g, b, matrix) {
 }
 
 function renderVisionSwatches() {
+    if (!visionNormalSwatches || !visionSimulatedSwatches) return;
+
     // Clear existing swatches (keep empty message)
     const normalSwatches = visionNormalSwatches.querySelectorAll('.vision-swatch');
     normalSwatches.forEach(s => s.remove());
@@ -1136,8 +1143,6 @@ function handleVisionModeToggle(e) {
     renderVisionSwatches();
 }
 
-visionButtons.forEach(btn => btn.addEventListener('click', handleVisionModeToggle));
-
 // =========================================
 // INITIALIZATION
 // =========================================
@@ -1156,6 +1161,9 @@ function init() {
 
     // Initialize Star Chart
     initStarChart();
+
+    // Initialize Vision Simulator
+    initVisionSimulator();
 
     // Initialize Catalog and Vision Simulator
     renderCatalog();
