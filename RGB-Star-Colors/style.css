@@ -870,6 +870,122 @@ body {
 }
 
 /* =========================================
+   VISION DEFICIENCY SIMULATOR
+   ========================================= */
+
+.vision-panel {
+    margin-top: 1.5rem;
+}
+
+.vision-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        var(--border) 20%,
+        var(--accent) 50%,
+        var(--border) 80%,
+        transparent
+    );
+    margin-bottom: 1.5rem;
+}
+
+.vision-header {
+    margin-bottom: 1rem;
+    color: var(--text-dim);
+}
+
+.vision-controls {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-vision {
+    padding: 0.6rem 1rem;
+    font-size: 0.7rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    transition: all 0.2s ease;
+}
+
+.btn-vision:hover {
+    border-color: var(--text);
+    color: var(--text);
+}
+
+.btn-vision.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0, 229, 255, 0.1);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.vision-display {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.vision-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+}
+
+.vision-row-label {
+    min-width: 180px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    padding-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.vision-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 56px;
+    align-items: center;
+}
+
+.vision-swatch {
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease;
+}
+
+.vision-swatch:hover {
+    transform: scale(1.05);
+}
+
+.vision-empty {
+    width: 100%;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 1rem;
+}
+
+.vision-simulated {
+    display: none;
+}
+
+.vision-simulated.active {
+    display: flex;
+}
+
+/* =========================================
    RESPONSIVE
    ========================================= */
 
@@ -920,6 +1036,23 @@ body {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
+    }
+
+    .vision-controls {
+        flex-direction: column;
+    }
+
+    .btn-vision {
+        width: 100%;
+    }
+
+    .vision-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .vision-row-label {
+        min-width: unset;
     }
 }
 

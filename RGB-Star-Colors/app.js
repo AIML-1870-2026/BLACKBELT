@@ -586,6 +586,9 @@ function renderCatalog() {
 
         catalogGrid.appendChild(chip);
     });
+
+    // Update vision simulator display
+    renderVisionSwatches();
 }
 
 function catalogAllBands() {
@@ -1019,6 +1022,123 @@ tabBtns.forEach(btn => {
 });
 
 // =========================================
+// 10. VISION DEFICIENCY SIMULATOR
+// =========================================
+
+const visionButtons = document.querySelectorAll('.btn-vision');
+const visionNormalSwatches = document.getElementById('vision-normal');
+const visionSimulatedSwatches = document.getElementById('vision-simulated');
+const visionSimulatedRow = document.getElementById('vision-simulated-row');
+const visionSimLabel = document.getElementById('vision-sim-label');
+const visionEmptyNormal = document.getElementById('vision-empty-normal');
+
+let activeVisionMode = null;
+
+// Color Vision Deficiency Transformation Matrices (Brettel/Viénot)
+const CVD_MATRICES = {
+    protanopia: {
+        label: 'PROTANOPIA — RED ABSENT',
+        matrix: [
+            [0.567, 0.433, 0.000],
+            [0.558, 0.442, 0.000],
+            [0.000, 0.242, 0.758]
+        ]
+    },
+    deuteranopia: {
+        label: 'DEUTERANOPIA — GREEN ABSENT',
+        matrix: [
+            [0.625, 0.375, 0.000],
+            [0.700, 0.300, 0.000],
+            [0.000, 0.300, 0.700]
+        ]
+    },
+    tritanopia: {
+        label: 'TRITANOPIA — BLUE ABSENT',
+        matrix: [
+            [0.950, 0.050, 0.000],
+            [0.000, 0.433, 0.567],
+            [0.000, 0.475, 0.525]
+        ]
+    }
+};
+
+function transformColorForCVD(r, g, b, matrix) {
+    const newR = Math.min(255, Math.max(0, Math.round(matrix[0][0] * r + matrix[0][1] * g + matrix[0][2] * b)));
+    const newG = Math.min(255, Math.max(0, Math.round(matrix[1][0] * r + matrix[1][1] * g + matrix[1][2] * b)));
+    const newB = Math.min(255, Math.max(0, Math.round(matrix[2][0] * r + matrix[2][1] * g + matrix[2][2] * b)));
+    return { r: newR, g: newG, b: newB };
+}
+
+function renderVisionSwatches() {
+    // Clear existing swatches (keep empty message)
+    const normalSwatches = visionNormalSwatches.querySelectorAll('.vision-swatch');
+    normalSwatches.forEach(s => s.remove());
+    const simSwatches = visionSimulatedSwatches.querySelectorAll('.vision-swatch');
+    simSwatches.forEach(s => s.remove());
+
+    // Show/hide empty message
+    if (state.catalog.length === 0) {
+        visionEmptyNormal.style.display = 'block';
+        visionSimulatedRow.classList.remove('active');
+        return;
+    } else {
+        visionEmptyNormal.style.display = 'none';
+    }
+
+    // Render normal vision swatches
+    state.catalog.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'vision-swatch';
+        swatch.style.backgroundColor = color.hex;
+        visionNormalSwatches.appendChild(swatch);
+    });
+
+    // Render simulated swatches if a mode is active
+    if (activeVisionMode && CVD_MATRICES[activeVisionMode]) {
+        visionSimulatedRow.classList.add('active');
+        visionSimLabel.textContent = CVD_MATRICES[activeVisionMode].label;
+
+        state.catalog.forEach(color => {
+            const transformed = transformColorForCVD(
+                color.r,
+                color.g,
+                color.b,
+                CVD_MATRICES[activeVisionMode].matrix
+            );
+            const hex = rgbToHex(transformed.r, transformed.g, transformed.b);
+
+            const swatch = document.createElement('div');
+            swatch.className = 'vision-swatch';
+            swatch.style.backgroundColor = hex;
+            visionSimulatedSwatches.appendChild(swatch);
+        });
+    } else {
+        visionSimulatedRow.classList.remove('active');
+    }
+}
+
+function handleVisionModeToggle(e) {
+    const mode = e.target.dataset.vision;
+    if (!mode) return;
+
+    // Toggle mode - clicking active button deactivates it
+    if (activeVisionMode === mode) {
+        activeVisionMode = null;
+        e.target.classList.remove('active');
+    } else {
+        // Deactivate all buttons first
+        visionButtons.forEach(btn => btn.classList.remove('active'));
+        // Activate clicked button
+        e.target.classList.add('active');
+        activeVisionMode = mode;
+    }
+
+    renderVisionSwatches();
+}
+
+visionButtons.forEach(btn => btn.addEventListener('click', handleVisionModeToggle));
+
+// =========================================
 // INITIALIZATION
 // =========================================
 
@@ -1037,7 +1157,9 @@ function init() {
     // Initialize Star Chart
     initStarChart();
 
+    // Initialize Catalog and Vision Simulator
     renderCatalog();
+    renderVisionSwatches();
 }
 
 document.addEventListener('DOMContentLoaded', init);

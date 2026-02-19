@@ -195,6 +195,35 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Vision Deficiency Simulator -->
+                <div class="panel vision-panel">
+                    <div class="vision-divider"></div>
+                    <h3 class="section-label vision-header">SPECTRAL VISION ANALYSIS — SIMULATING HUMAN COLOR PERCEPTION VARIANCE</h3>
+
+                    <div class="vision-controls">
+                        <button class="btn btn-vision" data-vision="protanopia">PROTANOPIA</button>
+                        <button class="btn btn-vision" data-vision="deuteranopia">DEUTERANOPIA</button>
+                        <button class="btn btn-vision" data-vision="tritanopia">TRITANOPIA</button>
+                    </div>
+
+                    <div class="vision-display">
+                        <!-- Normal Vision Row -->
+                        <div class="vision-row">
+                            <span class="vision-row-label">NORMAL VISION</span>
+                            <div class="vision-swatches" id="vision-normal">
+                                <div class="vision-empty" id="vision-empty-normal">NO SPECIMENS CATALOGUED — ADD COLORS TO BEGIN ANALYSIS</div>
+                            </div>
+                        </div>
+
+                        <!-- Simulated Vision Row (hidden by default) -->
+                        <div class="vision-row vision-simulated" id="vision-simulated-row">
+                            <span class="vision-row-label" id="vision-sim-label">PROTANOPIA — RED ABSENT</span>
+                            <div class="vision-swatches" id="vision-simulated">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
