@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readable</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Readable</h1>
+    <p>A web accessibility color tool for evaluating text readability and WCAG-compliant contrast ratios in real time.</p>
+  </header>
+
+  <main>
+    <section id="controls">
+      <h2>Controls</h2>
+
+      <div class="control-group">
+        <h3>Background Color <span id="bg-swatch" class="color-swatch"></span></h3>
+        <div class="slider-row">
+          <label for="bg-red">Red</label>
+          <input type="range" id="bg-red" min="0" max="255" value="255">
+          <span class="value" id="bg-red-value">255</span>
+        </div>
+        <div class="slider-row">
+          <label for="bg-green">Green</label>
+          <input type="range" id="bg-green" min="0" max="255" value="255">
+          <span class="value" id="bg-green-value">255</span>
+        </div>
+        <div class="slider-row">
+          <label for="bg-blue">Blue</label>
+          <input type="range" id="bg-blue" min="0" max="255" value="255">
+          <span class="value" id="bg-blue-value">255</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Text Color <span id="text-swatch" class="color-swatch"></span></h3>
+        <div class="slider-row">
+          <label for="text-red">Red</label>
+          <input type="range" id="text-red" min="0" max="255" value="0">
+          <span class="value" id="text-red-value">0</span>
+        </div>
+        <div class="slider-row">
+          <label for="text-green">Green</label>
+          <input type="range" id="text-green" min="0" max="255" value="0">
+          <span class="value" id="text-green-value">0</span>
+        </div>
+        <div class="slider-row">
+          <label for="text-blue">Blue</label>
+          <input type="range" id="text-blue" min="0" max="255" value="0">
+          <span class="value" id="text-blue-value">0</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Text Size</h3>
+        <div class="slider-row">
+          <label for="text-size">Size</label>
+          <input type="range" id="text-size" min="10" max="48" value="16">
+          <span class="value" id="text-size-value">16px</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <h3>Display Area Width</h3>
+        <div class="slider-row">
+          <label for="area-width">Width</label>
+          <input type="range" id="area-width" min="200" max="900" value="600">
+          <span class="value" id="area-width-value">600px</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="preview">
+      <h2>Preview</h2>
+      <div class="swatches-container">
+        <div class="swatch-display">
+          <div id="bg-large-swatch" class="large-swatch"></div>
+          <div class="swatch-info">
+            <div class="swatch-label">Background</div>
+            <div class="swatch-value" id="bg-rgb-display">rgb(255, 255, 255)</div>
+          </div>
+        </div>
+        <div class="swatch-display">
+          <div id="text-large-swatch" class="large-swatch"></div>
+          <div class="swatch-info">
+            <div class="swatch-label">Text</div>
+            <div class="swatch-value" id="text-rgb-display">rgb(0, 0, 0)</div>
+          </div>
+        </div>
+      </div>
+      <div class="preview-box-container">
+        <div id="text-preview">
+          <p>The quick brown fox jumps over the lazy dog. This sample paragraph demonstrates how your chosen colors appear together in a realistic reading context. Good contrast between text and background colors is essential for accessibility, ensuring that all users—including those with visual impairments—can comfortably read your content. Adjusting the sliders will help you find the perfect balance between aesthetics and readability.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="calculations">
+      <h2>Luminance &amp; Contrast</h2>
+      <div class="calc-grid">
+        <div class="calc-item">
+          <div class="calc-label">Background Luminance (L1)</div>
+          <div class="calc-value" id="lum-bg">1.0000</div>
+        </div>
+        <div class="calc-item">
+          <div class="calc-label">Text Luminance (L2)</div>
+          <div class="calc-value" id="lum-text">0.0000</div>
+        </div>
+        <div class="calc-item full-width contrast">
+          <div class="calc-label">Contrast Ratio</div>
+          <div class="calc-value" id="contrast-ratio">21.00 : 1</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="passfail">
+      <h2>WCAG Compliance</h2>
+      <div class="badges-container">
+        <div class="badge pass" id="badge-aa">
+          <div class="badge-level">AA Standard</div>
+          <div class="badge-status" id="aa-status">PASS</div>
+          <div class="badge-ratio">Requires 4.5 : 1</div>
+        </div>
+        <div class="badge pass" id="badge-aaa">
+          <div class="badge-level">AAA Standard</div>
+          <div class="badge-status" id="aaa-status">PASS</div>
+          <div class="badge-ratio">Requires 7.0 : 1</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
