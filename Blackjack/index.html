@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Blackjack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Starfield Background -->
+    <div class="starfield">
+        <div class="stars stars-1"></div>
+        <div class="stars stars-2"></div>
+        <div class="stars stars-3"></div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Header -->
+        <header class="game-header">
+            <h1 class="game-title">Cosmic Blackjack</h1>
+            <div class="shoe-status">
+                <span class="shoe-icon">🃏</span>
+                <span class="shoe-count">312</span>
+                <span class="shoe-label">cards</span>
+            </div>
+        </header>
+
+        <!-- Game Table -->
+        <main class="game-table">
+            <!-- Dealer Zone -->
+            <section class="dealer-zone">
+                <div class="zone-label">Dealer</div>
+                <div class="hand-total dealer-total">
+                    <span class="total-value">—</span>
+                </div>
+                <div class="cards-container dealer-cards"></div>
+            </section>
+
+            <!-- Table Center / Status -->
+            <section class="table-center">
+                <div class="status-message">Place your bet to begin</div>
+                <div class="dealer-thinking" hidden>
+                    <span class="thinking-dot"></span>
+                    <span class="thinking-dot"></span>
+                    <span class="thinking-dot"></span>
+                </div>
+            </section>
+
+            <!-- Player Zone -->
+            <section class="player-zone">
+                <div class="cards-container player-cards"></div>
+                <div class="hand-total player-total">
+                    <span class="total-value">—</span>
+                </div>
+                <div class="zone-label">Player</div>
+
+                <!-- Split Hands Container (hidden by default) -->
+                <div class="split-hands-container" hidden>
+                    <div class="split-hand split-hand-1">
+                        <div class="cards-container"></div>
+                        <div class="hand-total"><span class="total-value">—</span></div>
+                        <div class="split-result"></div>
+                    </div>
+                    <div class="split-hand split-hand-2">
+                        <div class="cards-container"></div>
+                        <div class="hand-total"><span class="total-value">—</span></div>
+                        <div class="split-result"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Bar -->
+            <section class="action-bar">
+                <button class="action-btn btn-hit" disabled>Hit</button>
+                <button class="action-btn btn-stand" disabled>Stand</button>
+                <button class="action-btn btn-double" disabled>Double</button>
+                <button class="action-btn btn-split" disabled>Split</button>
+            </section>
+
+            <!-- Bet Zone -->
+            <section class="bet-zone">
+                <div class="chips-container">
+                    <button class="chip chip-5" data-value="5">$5</button>
+                    <button class="chip chip-10" data-value="10">$10</button>
+                    <button class="chip chip-25" data-value="25">$25</button>
+                    <button class="chip chip-50" data-value="50">$50</button>
+                    <button class="chip chip-100" data-value="100">$100</button>
+                </div>
+                <div class="bet-display">
+                    <div class="current-bet">
+                        <span class="bet-label">Bet</span>
+                        <span class="bet-amount">$0</span>
+                    </div>
+                    <div class="bankroll">
+                        <span class="bankroll-label">Bank</span>
+                        <span class="bankroll-amount">$500</span>
+                    </div>
+                </div>
+                <div class="bet-actions">
+                    <button class="bet-btn btn-clear">Clear</button>
+                    <button class="bet-btn btn-deal">Deal</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Stats Panel Overlay -->
+        <div class="stats-panel" hidden>
+            <h2 class="stats-title">Session Stats</h2>
+            <div class="stats-grid">
+                <div class="stat-row">
+                    <span class="stat-label">Wins</span>
+                    <span class="stat-value stat-win-val" id="stat-wins">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Losses</span>
+                    <span class="stat-value stat-loss-val" id="stat-losses">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Pushes</span>
+                    <span class="stat-value" id="stat-pushes">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Win Rate</span>
+                    <span class="stat-value" id="stat-winrate">—</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Blackjacks</span>
+                    <span class="stat-value stat-bj-val" id="stat-blackjacks">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Biggest Win</span>
+                    <span class="stat-value stat-win-val" id="stat-biggest-win">$0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Biggest Loss</span>
+                    <span class="stat-value stat-loss-val" id="stat-biggest-loss">$0</span>
+                </div>
+            </div>
+            <p class="stats-dismiss">Place a bet to continue...</p>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div class="game-over-overlay" hidden>
+            <div class="game-over-content">
+                <h2 class="game-over-title">Game Over</h2>
+                <p class="game-over-message">You've run out of chips!</p>
+                <button class="btn-restart">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
