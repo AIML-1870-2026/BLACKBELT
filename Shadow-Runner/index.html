@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>影走り — Shadow Runner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Game Canvas -->
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD Overlay -->
+  <div id="hud">
+    <div id="hud-tier">TIER: <span id="tier-label">BEGINNER</span></div>
+    <div id="hud-combat" class="hidden">
+      <div id="combat-keys"></div>
+    </div>
+    <div id="hud-score">
+      <div id="score-display">SCORE: <span id="score-value">0</span></div>
+      <div id="highscore-display">BEST: <span id="highscore-value">0</span></div>
+    </div>
+  </div>
+
+  <!-- Combat Timer Ring (bottom center) -->
+  <div id="combat-timer-container" class="hidden">
+    <svg id="combat-timer-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <circle class="timer-bg" cx="40" cy="40" r="34"/>
+      <circle class="timer-ring" id="timer-ring" cx="40" cy="40" r="34"/>
+    </svg>
+    <div id="combat-timer-icon">⚔</div>
+  </div>
+
+  <!-- Title Screen -->
+  <div id="screen-title" class="screen">
+    <div class="screen-content">
+      <div class="title-jp">影走り</div>
+      <div class="title-en">Shadow Runner</div>
+      <div id="title-highscore" class="hidden">Best: <span id="title-hs-value">0</span></div>
+      <div class="press-enter">Press Enter to Begin</div>
+    </div>
+  </div>
+
+  <!-- Pause Screen -->
+  <div id="screen-pause" class="screen hidden">
+    <div class="screen-content">
+      <div class="screen-title">PAUSED</div>
+      <div class="screen-sub">Press Escape to Resume</div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="screen-gameover" class="screen hidden">
+    <div class="screen-content">
+      <div class="screen-title">GAME OVER</div>
+      <div id="gameover-cause" class="screen-cause"></div>
+      <div class="score-block">
+        <div>Score: <span id="gameover-score">0</span></div>
+        <div>Best: <span id="gameover-highscore">0</span></div>
+      </div>
+      <div id="new-best-banner" class="hidden new-best">✦ NEW BEST ✦</div>
+      <div class="press-enter">Press Enter to Restart</div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
