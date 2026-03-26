@@ -1,0 +1,423 @@
+/* ===================== CSS VARIABLES ===================== */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent: #a8d8f0;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: #1a2a4a;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===================== BACKGROUND CANVAS ===================== */
+#bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* ===================== APP CONTAINER ===================== */
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: min(1380px, 90vw);
+  margin: 0 auto;
+  padding: 40px 40px 60px;
+}
+
+/* ===================== GLASS CARD ===================== */
+.glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+/* ===================== SEARCH SECTION ===================== */
+.search-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 680px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 50px;
+  padding: 10px 16px;
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s;
+}
+
+.search-bar:focus-within {
+  border-color: rgba(168, 216, 240, 0.6);
+  box-shadow: 0 0 0 3px rgba(168, 216, 240, 0.15), var(--shadow);
+}
+
+#city-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  padding: 4px 8px;
+  min-width: 0;
+}
+
+#city-input::placeholder {
+  color: var(--text-secondary);
+}
+
+#search-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 50%;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+#search-btn:hover {
+  transform: scale(1.15);
+}
+
+#location-btn {
+  flex-shrink: 0;
+  background: rgba(168, 216, 240, 0.18);
+  border: 1px solid rgba(168, 216, 240, 0.4);
+  border-radius: 50px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+#location-btn:hover {
+  background: rgba(168, 216, 240, 0.32);
+}
+
+.inline-error {
+  color: rgba(255, 160, 160, 0.95);
+  font-size: 13px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* ===================== ALERT BANNER ===================== */
+.alert-banner {
+  background: rgba(220, 50, 50, 0.25);
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 16px 22px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.4s ease;
+}
+
+.alert-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alert-event {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.alert-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.alert-source {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 2px;
+}
+
+/* ===================== WEATHER CONTENT ===================== */
+.weather-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===================== LOADING CARD ===================== */
+.loading-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===================== MAIN CARD ===================== */
+.main-card {
+  text-align: center;
+  padding: 36px 28px;
+}
+
+.city-name {
+  font-family: 'Raleway', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+
+.temperature {
+  font-family: 'Raleway', sans-serif;
+  font-size: 100px;
+  font-weight: 900;
+  line-height: 1;
+  margin: 10px 0;
+  letter-spacing: -4px;
+}
+
+.condition {
+  font-size: 20px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  text-transform: capitalize;
+}
+
+.feels-like {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.high-low {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ===================== STATS ROW ===================== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-tile {
+  text-align: center;
+  padding: 22px 16px;
+  border-radius: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* ===================== CARD TITLE ===================== */
+.card-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+}
+
+/* ===================== SUGGESTIONS CARD ===================== */
+.suggestion-card {}
+
+.suggestion-item {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  line-height: 1.6;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* ===================== TOP ROW ===================== */
+.top-row {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 16px;
+  align-items: start;
+}
+
+/* ===================== BOTTOM ROW ===================== */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.chart-card canvas {
+  width: 100%;
+  display: block;
+}
+
+/* ===================== SUNRISE CARD ===================== */
+.sunrise-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#sunrise-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sunrise-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.sun-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.daylight-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ===================== FORECAST STRIP ===================== */
+.forecast-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.forecast-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.forecast-day {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.forecast-emoji {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.forecast-temps {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.forecast-high {
+  color: var(--text-primary);
+  font-weight: 600;
+}

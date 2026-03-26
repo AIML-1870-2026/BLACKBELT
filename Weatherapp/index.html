@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeatherGlass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="app-container">
+
+    <!-- Search Section -->
+    <div class="search-section">
+      <div class="search-bar">
+        <label for="city-input" class="sr-only">Search city</label>
+        <input type="text" id="city-input" placeholder="Search city..." autocomplete="off" spellcheck="false">
+        <button id="search-btn" aria-label="Search">🔍</button>
+        <button id="location-btn" aria-label="Use my location">📍 Use My Location</button>
+      </div>
+      <div id="location-error" class="inline-error hidden"></div>
+      <div id="search-error" class="inline-error hidden"></div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div id="alert-banner" class="alert-banner hidden"></div>
+
+    <!-- Main Weather Content -->
+    <div id="weather-content" class="weather-content hidden">
+
+      <!-- Loading State -->
+      <div id="loading-state" class="glass-card loading-card hidden">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Top Row: Main Card + Suggestions -->
+      <div class="top-row">
+
+        <!-- Main Weather Card -->
+        <div class="glass-card main-card" id="main-card">
+          <div class="city-name" id="city-name"></div>
+          <div class="temperature" id="temperature"></div>
+          <div class="condition" id="condition"></div>
+          <div class="feels-like" id="feels-like"></div>
+          <div class="high-low" id="high-low"></div>
+        </div>
+
+        <!-- Suggestions Card -->
+        <div class="glass-card suggestion-card">
+          <h3 class="card-title">Today's Suggestions</h3>
+          <div id="suggestions-list"></div>
+        </div>
+
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="glass-card stat-tile">
+          <div class="stat-label">HUMIDITY</div>
+          <div class="stat-value" id="humidity"></div>
+        </div>
+        <div class="glass-card stat-tile">
+          <div class="stat-label">WIND</div>
+          <div class="stat-value" id="wind"></div>
+        </div>
+        <div class="glass-card stat-tile">
+          <div class="stat-label">VISIBILITY</div>
+          <div class="stat-value" id="visibility"></div>
+        </div>
+        <div class="glass-card stat-tile">
+          <div class="stat-label">UV INDEX</div>
+          <div class="stat-value" id="uv-index"></div>
+        </div>
+      </div>
+
+      <!-- Hourly Chart + Sunrise/Sunset -->
+      <div class="bottom-row">
+        <div class="glass-card chart-card">
+          <h3 class="card-title">Next 12 Hours</h3>
+          <canvas id="hourly-chart" height="160"></canvas>
+        </div>
+        <div class="glass-card sunrise-card">
+          <h3 class="card-title">Daylight</h3>
+          <canvas id="sunrise-canvas" style="width:100%;height:110px;"></canvas>
+          <div class="sunrise-labels">
+            <span id="sunrise-time" class="sun-time"></span>
+            <span id="daylight-progress" class="daylight-pct"></span>
+            <span id="sunset-time" class="sun-time"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5-Day Forecast Strip -->
+      <div class="forecast-strip" id="forecast-strip"></div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
