@@ -1,4 +1,6 @@
 // views/impact-risk.js — Impact Risk right panel
+// Sentry API (Sentry-II) returns named object properties, not field-indexed arrays.
+// Current fields: des, fullname, h, diameter, v_inf, ps_cum, ps_max, n_imp, range, last_obs
 
 function renderImpactRisk(panel) {
   panel.innerHTML = `
@@ -29,54 +31,40 @@ function renderImpactRisk(panel) {
       return;
     }
 
-    // data.fields tells us column order
-    const fields = data.fields || [];
-    const idx = (name) => fields.indexOf(name);
-
-    const iDes  = idx('des');
-    const iFull = idx('fullname');
-    const iIp   = idx('ip');
-    const iPs   = idx('ps');
-    const iTs   = idx('ts');
-    const iRange= idx('range');
-    const iDiam = idx('diameter');
-
-    // Sort by Palermo scale descending (most dangerous first)
+    // Sort by cumulative Palermo scale descending (most dangerous first)
     const sorted = [...objects].sort((a, b) => {
-      const pa = parseFloat(a[iPs]) || -99;
-      const pb = parseFloat(b[iPs]) || -99;
+      const pa = parseFloat(a.ps_cum) || -99;
+      const pb = parseFloat(b.ps_cum) || -99;
       return pb - pa;
     });
 
     list.innerHTML = sorted.map(obj => {
-      const ps = parseFloat(obj[iPs]);
-      const ts = parseInt(obj[iTs]) || 0;
-      const ip = obj[iIp] ? (parseFloat(obj[iIp]) * 100).toExponential(2) + '%' : '—';
-      const name = obj[iFull] || obj[iDes] || '—';
-      const range = obj[iRange] || '—';
-      const diam = obj[iDiam] ? `${parseFloat(obj[iDiam]).toFixed(2)} km` : '—';
+      const ps   = parseFloat(obj.ps_cum);
+      const name = obj.fullname || obj.des || '—';
+      const range = obj.range   || '—';
+      const nImp  = obj.n_imp   ? parseInt(obj.n_imp).toLocaleString() : '—';
+      const diam  = obj.diameter
+        ? `${parseFloat(obj.diameter) < 1
+            ? (parseFloat(obj.diameter) * 1000).toFixed(0) + ' m'
+            : parseFloat(obj.diameter).toFixed(2) + ' km'}`
+        : '—';
+      const vel   = obj.v_inf   ? `${parseFloat(obj.v_inf).toFixed(1)} km/s` : '—';
 
       let psColor = '#1D9E75';
-      if (ps > 0) psColor = '#E24B4A';
+      if (ps > 0)  psColor = '#E24B4A';
       else if (ps > -2) psColor = '#EF9F27';
-
-      let tsBg = 'rgba(29,158,117,0.15)';
-      if (ts >= 4) tsBg = 'rgba(226,75,74,0.2)';
-      else if (ts >= 1) tsBg = 'rgba(239,159,39,0.15)';
 
       return `
         <div class="sentry-card">
           <div class="sentry-card-header">
             <span class="sentry-name">${name}</span>
-            <span class="sentry-ts-badge" style="background:${tsBg}">Torino ${ts}</span>
+            <span class="sentry-ts-badge" style="background:rgba(29,158,117,0.15)">
+              ${nImp} impact${nImp === '1' ? '' : 's'}
+            </span>
           </div>
           <div class="sentry-row">
             <span class="ast-label">PALERMO SCALE</span>
             <span class="sentry-ps" style="color:${psColor}">${isNaN(ps) ? '—' : ps.toFixed(2)}</span>
-          </div>
-          <div class="sentry-row">
-            <span class="ast-label">IMPACT PROB.</span>
-            <span class="ast-value-muted">${ip}</span>
           </div>
           <div class="sentry-row">
             <span class="ast-label">YEAR RANGE</span>
@@ -85,6 +73,10 @@ function renderImpactRisk(panel) {
           <div class="sentry-row">
             <span class="ast-label">DIAMETER</span>
             <span class="ast-value-muted">${diam}</span>
+          </div>
+          <div class="sentry-row">
+            <span class="ast-label">IMPACT VEL.</span>
+            <span class="ast-value-muted">${vel}</span>
           </div>
         </div>`;
     }).join('');
