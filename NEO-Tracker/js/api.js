@@ -83,8 +83,15 @@ function dateRange(days = 3) {
 // NeoWs weekly feed
 async function fetchNeoFeed() {
   const { start, end } = dateRange(3);
-  const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${start}&end_date=${end}&api_key=${NASA_KEY}`;
-  const json = await apiFetch(url, 'neows');
+  const makeUrl = key => `https://api.nasa.gov/neo/rest/v1/feed?start_date=${start}&end_date=${end}&api_key=${key}`;
+
+  let json;
+  try {
+    json = await apiFetch(makeUrl(NASA_KEY), 'neows');
+  } catch {
+    // Primary key may be rate-limited or invalidated — fall back to DEMO_KEY
+    json = await apiFetch(makeUrl('DEMO_KEY'), 'neows');
+  }
 
   // Flatten the date-keyed object into a single array
   const neos = [];

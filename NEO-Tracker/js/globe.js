@@ -82,7 +82,10 @@ function buildScene() {
 
   // Earth sphere — night-lights texture wrapped on a sphere
   const loader  = new THREE.TextureLoader();
-  const earthTex = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+  // Use a reliable CDN for the night-lights texture
+  const earthTex = loader.load(
+    'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-night.jpg'
+  );
   earthMesh = new THREE.Mesh(
     new THREE.SphereGeometry(ER, 72, 72),
     new THREE.MeshPhongMaterial({ map: earthTex, specular: 0x111122, shininess: 15 })
