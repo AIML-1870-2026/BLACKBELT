@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEO Tracker — Near Earth Object Monitor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="shell">
+
+  <!-- ── Header ─────────────────────────────────────── -->
+  <header id="header">
+    <div class="header-left">
+      <span class="live-pip"></span>
+      <span class="header-title">NEO Tracker</span>
+      <span class="header-divider"></span>
+      <span class="header-sub">near earth object monitor &nbsp;·&nbsp; live</span>
+      <span id="cache-chip"></span>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" id="btn-refresh" title="Refresh data" aria-label="Refresh">
+        <!-- refresh icon -->
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1.5 8A6.5 6.5 0 1 0 4 3.5"/>
+          <polyline points="1.5 1 1.5 4 4.5 4"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btn-info" title="About" aria-label="Info">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="6.5"/>
+          <line x1="8" y1="7" x2="8" y2="11"/>
+          <circle cx="8" cy="5" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <nav id="sidebar">
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Views</div>
+
+      <div class="nav-tab" id="tab-miss-distance">
+        <!-- crosshair icon -->
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="8" cy="8" r="5.5"/>
+          <line x1="8" y1="1" x2="8" y2="4"/>
+          <line x1="8" y1="12" x2="8" y2="15"/>
+          <line x1="1" y1="8" x2="4" y2="8"/>
+          <line x1="12" y1="8" x2="15" y2="8"/>
+        </svg>
+        <span>Miss distance</span>
+      </div>
+
+      <div class="nav-tab" id="tab-this-week">
+        <!-- rising chart icon -->
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1.5,11.5 5,7.5 8.5,9.5 14.5,3.5"/>
+          <line x1="1.5" y1="14" x2="14.5" y2="14"/>
+        </svg>
+        <span>This week</span>
+        <span class="nav-badge" id="badge-this-week">···</span>
+      </div>
+
+      <div class="nav-tab" id="tab-size-speed">
+        <!-- bar chart icon -->
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="1.5" y="9" width="3" height="5.5" rx="0.5"/>
+          <rect x="6.5" y="5" width="3" height="9.5" rx="0.5"/>
+          <rect x="11.5" y="2" width="3" height="12.5" rx="0.5"/>
+        </svg>
+        <span>Size &amp; speed</span>
+      </div>
+
+      <div class="nav-tab" id="tab-schedule">
+        <!-- calendar icon -->
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <rect x="1.5" y="3" width="13" height="11.5" rx="1.5"/>
+          <line x1="1.5" y1="7" x2="14.5" y2="7"/>
+          <line x1="5" y1="1.5" x2="5" y2="4.5"/>
+          <line x1="11" y1="1.5" x2="11" y2="4.5"/>
+        </svg>
+        <span>Schedule</span>
+      </div>
+
+      <div class="nav-tab" id="tab-impact-risk">
+        <!-- shield icon -->
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 1.5 L14 4 V8 C14 11.5 8 14.5 8 14.5 C8 14.5 2 11.5 2 8 V4 Z"/>
+        </svg>
+        <span>Impact risk</span>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+    <div id="asteroid-card"></div>
+  </nav>
+
+  <!-- ── Globe ───────────────────────────────────────── -->
+  <div id="globe-wrap">
+    <canvas id="globe-canvas"></canvas>
+
+    <!-- Zoom controls top-right -->
+    <div class="canvas-controls-tr">
+      <button class="canvas-btn" id="btn-zoom-in"  title="Zoom in">+</button>
+      <button class="canvas-btn" id="btn-zoom-out" title="Zoom out">−</button>
+      <button class="canvas-btn" id="btn-reset"    title="Reset view">↺</button>
+    </div>
+
+    <!-- Labels toggle bottom-left -->
+    <div class="canvas-controls-bl">
+      <button class="canvas-btn canvas-btn-label" id="btn-labels">Labels</button>
+    </div>
+  </div>
+
+  <!-- ── Context panel ───────────────────────────────── -->
+  <div id="context-panel-wrap">
+    <div id="context-panel"></div>
+  </div>
+
+  <!-- ── Bottom bar ──────────────────────────────────── -->
+  <footer id="bottom-bar">
+    <div id="bottom-content" class="bottom-default">
+      <div class="bottom-hint">Hover or click an asteroid to see details</div>
+      <div class="bottom-disclaimer">Dot positions are illustrative — actual flyby geometry depends on orbital mechanics at closest approach.</div>
+    </div>
+  </footer>
+
+</div><!-- /shell -->
+
+<!-- Scripts — load order matters: utils → config → api → globe → sidebar → views → main -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/globe.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/views/miss-distance.js"></script>
+<script src="js/views/this-week.js"></script>
+<script src="js/views/size-speed.js"></script>
+<script src="js/views/schedule.js"></script>
+<script src="js/views/impact-risk.js"></script>
+
+<script>
+  // ── Boot ─────────────────────────────────────────────
+
+  initGlobe(document.getElementById('globe-canvas'));
+  initSidebar();
+
+  // Load NEO data and pass to globe
+  getNeoData((err, data) => {
+    if (err) {
+      showGlobeError();
+      return;
+    }
+    setAsteroids(data);
+    updateThisWeekBadge(data.length);
+    // Fade-in asteroid layer handled via CSS class on canvas parent
+    document.getElementById('globe-canvas').parentElement.classList.add('asteroids-loaded');
+  });
+
+  // ── Canvas controls ──────────────────────────────────
+  document.getElementById('btn-zoom-in').addEventListener('click', () => zoomIn());
+  document.getElementById('btn-zoom-out').addEventListener('click', () => zoomOut());
+  document.getElementById('btn-reset').addEventListener('click', () => resetView());
+
+  const labelsBtn = document.getElementById('btn-labels');
+  labelsBtn.addEventListener('click', () => {
+    const on = toggleLabels();
+    labelsBtn.style.color = on ? 'var(--accent)' : '';
+    labelsBtn.style.borderColor = on ? 'rgba(61,220,132,0.3)' : '';
+  });
+  // Labels on by default — style the button accordingly
+  labelsBtn.style.color = 'var(--accent)';
+  labelsBtn.style.borderColor = 'rgba(61,220,132,0.3)';
+
+  // ── Header buttons ───────────────────────────────────
+  document.getElementById('btn-refresh').addEventListener('click', () => {
+    refreshNeoData((err, data) => {
+      if (err) { showGlobeError(); return; }
+      clearGlobeError();
+      setAsteroids(data);
+      updateThisWeekBadge(data.length);
+      renderPanel(activeTab);
+    });
+  });
+
+  document.getElementById('btn-info').addEventListener('click', () => {
+    alert('NEO Tracker\n\nData sources:\n• NASA NeoWs — weekly close approach feed\n• JPL SBDB — orbital elements on click\n• NASA Sentry — impact monitoring\n\nDot colors: red < 1 LD · amber 1–5 LD · green > 5 LD\n1 LD = 384,400 km (Earth–Moon distance)');
+  });
+
+  // ── Retry from globe overlay ─────────────────────────
+  function retryNeo() {
+    refreshNeoData((err, data) => {
+      if (err) { return; }
+      clearGlobeError();
+      setAsteroids(data);
+      updateThisWeekBadge(data.length);
+      renderPanel(activeTab);
+    });
+  }
+
+  // ── Bottom bar helpers ───────────────────────────────
+  function updateBottomBar(ast) {
+    const el = document.getElementById('bottom-content');
+    const km = formatNumber(ldToKm(ast.ld));
+    const insideGEO = isInsideGEO(ast.ld);
+    el.className = 'bottom-selected';
+    el.innerHTML = `
+      <span class="bottom-icon" style="color:${ast.hazardColor}">◈</span>
+      <span class="bottom-info">
+        <strong>${ast.name}</strong> will pass at
+        <span style="color:${ast.hazardColor}">${ast.ld.toFixed(2)} LD</span>
+        — about ${km} km from Earth
+        ${insideGEO ? '<span class="bottom-geo-warn"> · inside satellite belt</span>' : ''}
+      </span>
+      <span class="bottom-disclaimer-right">Dot positions are illustrative — actual flyby geometry depends on orbital mechanics at closest approach.</span>`;
+  }
+
+  function clearBottomBar() {
+    const el = document.getElementById('bottom-content');
+    el.className = 'bottom-default';
+    el.innerHTML = `
+      <div class="bottom-hint">Hover or click an asteroid to see details</div>
+      <div class="bottom-disclaimer">Dot positions are illustrative — actual flyby geometry depends on orbital mechanics at closest approach.</div>`;
+  }
+</script>
+
+</body>
+</html>
