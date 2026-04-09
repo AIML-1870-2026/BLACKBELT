@@ -193,7 +193,10 @@ async function fetchOpenAIModels() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data   = await res.json();
-    const models = filterOpenAIModels(data.data || []);
+    const all    = data.data || [];
+    console.log('[OpenAI] All models from API:', all.map(m => m.id).sort());
+    const models = filterOpenAIModels(all);
+    console.log('[OpenAI] After filter:', models.map(m => m.id));
 
     sel.innerHTML = '';
     if (models.length === 0) {
@@ -223,8 +226,7 @@ function filterOpenAIModels(models) {
       const id = m.id.toLowerCase();
       return !BLOCKED.some(b => id.includes(b));
     })
-    .sort((a, b) => b.created - a.created)
-    .slice(0, 5);
+    .sort((a, b) => b.created - a.created);
 }
 
 function showModelFallback(provider, selectEl) {
