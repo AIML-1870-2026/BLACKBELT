@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM SWITCHBOARD v1.0</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+  <!-- Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <!-- Syntax highlighting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/base16/green-screen.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/json.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Boot Screen -->
+  <div id="boot-screen">
+    <div id="boot-text"></div>
+    <div id="boot-skip">[ CLICK TO SKIP ]</div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="hidden">
+    <!-- Scanlines overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Header -->
+    <header id="header">
+      <div class="header-left">
+        <div class="header-title">
+          <span class="bracket">[</span>
+          <span class="title-text">LLM SWITCHBOARD v1.0</span>
+          <span class="bracket">]</span>
+        </div>
+        <div class="header-tagline">&gt; PARALLEL QUERY INTERFACE //</div>
+      </div>
+      <div class="header-indicators">
+        <span class="status-indicator" id="indicator-anthropic">◉ ANTHROPIC</span>
+        <span class="status-indicator" id="indicator-openai">◉ OPENAI</span>
+      </div>
+    </header>
+
+    <!-- Control Bar -->
+    <div id="control-bar">
+      <button class="ctrl-btn" id="api-keys-toggle">API KEYS ▼</button>
+
+      <div class="ctrl-group">
+        <label class="ctrl-label">CLAUDE:</label>
+        <select id="anthropic-model" class="terminal-select">
+          <option value="">-- NO KEY --</option>
+        </select>
+      </div>
+
+      <div class="ctrl-group">
+        <label class="ctrl-label">GPT:</label>
+        <select id="openai-model" class="terminal-select">
+          <option value="">-- NO KEY --</option>
+        </select>
+      </div>
+
+      <div class="ctrl-group">
+        <label class="ctrl-label">MAX TOKENS:</label>
+        <input type="number" id="max-tokens" class="terminal-input-num" min="256" max="4096" step="256" value="2048">
+      </div>
+
+      <div class="format-toggle">
+        <button class="fmt-btn active" id="fmt-free" data-mode="free">FREE TEXT</button>
+        <button class="fmt-btn" id="fmt-json" data-mode="json">JSON MODE</button>
+      </div>
+
+      <div class="convo-toggle">
+        <button class="conv-btn active" id="conv-single" data-mode="single">SINGLE</button>
+        <button class="conv-btn" id="conv-chat" data-mode="chat">CHAT</button>
+      </div>
+
+      <button class="ctrl-btn dim" id="clear-history-btn">CLEAR HISTORY</button>
+      <button class="ctrl-btn amber" id="clear-btn">⟳ CLEAR</button>
+    </div>
+
+    <!-- API Keys Drawer -->
+    <div id="api-keys-drawer">
+      <div class="drawer-inner">
+        <div class="key-field-group">
+          <label class="ctrl-label">ANTHROPIC KEY:</label>
+          <div class="key-input-wrap">
+            <input type="password" id="anthropic-key" class="terminal-input" placeholder="sk-ant-..." autocomplete="off">
+            <button class="eye-btn" data-target="anthropic-key">👁</button>
+          </div>
+        </div>
+        <div class="key-field-group">
+          <label class="ctrl-label">OPENAI KEY:</label>
+          <div class="key-input-wrap">
+            <input type="password" id="openai-key" class="terminal-input" placeholder="sk-..." autocomplete="off">
+            <button class="eye-btn" data-target="openai-key">👁</button>
+          </div>
+        </div>
+        <div id="key-status-line">
+          KEY STATUS:
+          <span id="key-status-anthropic" class="key-bad">[ANTHROPIC ✗]</span>
+          <span id="key-status-openai" class="key-bad">[OPENAI ✗]</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema Hint (JSON mode only) -->
+    <div id="schema-hint-area" class="hidden">
+      <label class="ctrl-label">SCHEMA HINT (optional):</label>
+      <textarea id="schema-hint" class="terminal-input schema-input" placeholder='{ "summary": string, "keyPoints": string[] }'></textarea>
+    </div>
+
+    <!-- Conversation History Log -->
+    <div id="history-log" class="hidden">
+      <div class="history-header">
+        <span class="ctrl-label">CONVERSATION HISTORY</span>
+      </div>
+      <div id="history-log-content"></div>
+    </div>
+
+    <!-- Query Section -->
+    <div id="query-section">
+      <!-- Preset Prompts -->
+      <div id="preset-container">
+        <button class="ctrl-btn" id="preset-toggle">PRESET PROMPTS ▼</button>
+        <div id="preset-dropdown" class="custom-dropdown hidden">
+          <div class="preset-item" data-prompt="Explain [topic] as if I'm a college student with no prior knowledge of it.">Explain a concept</div>
+          <div class="preset-item" data-prompt="Compare and contrast [option A] and [option B] across these dimensions: performance, cost, ease of use, and scalability.">Compare options</div>
+          <div class="preset-item" data-prompt="Here is my code: [paste code]. It's producing this error: [error]. Diagnose the issue and suggest a fix.">Debug code</div>
+          <div class="preset-item" data-prompt="Summarize the following text in 3–5 bullet points: [paste text]">Summarize text</div>
+          <div class="preset-item" data-prompt="Write a [language] function that [does X]. Include comments and error handling.">Write a function</div>
+          <div class="preset-item" data-prompt="List the pros and cons of [topic] in a structured format.">Pros and cons</div>
+          <div class="preset-item" data-prompt="Give me a step-by-step plan to [accomplish goal], including potential obstacles and how to address them.">Step-by-step plan</div>
+          <div class="preset-item" data-prompt="What are the most important questions someone should ask when thinking about [topic]?">Socratic question</div>
+        </div>
+      </div>
+
+      <!-- Query Textarea -->
+      <div id="query-wrap">
+        <span class="query-prefix">&gt;</span>
+        <textarea id="query-input" class="query-textarea" placeholder="ENTER QUERY_" rows="4" spellcheck="false"></textarea>
+      </div>
+      <div id="query-footer">
+        <span class="char-counter" id="char-counter">[0 / 8192]</span>
+      </div>
+
+      <!-- Transmit -->
+      <div id="transmit-area">
+        <button id="transmit-btn" class="transmit-btn">▶ TRANSMIT</button>
+        <div class="kb-hint">CTRL+ENTER TO TRANSMIT · ESC TO ABORT · CTRL+L CLEAR · CTRL+K KEYS</div>
+      </div>
+    </div>
+
+    <!-- Response Area -->
+    <div id="response-area">
+      <!-- Diff Bar -->
+      <div id="diff-bar" class="hidden">
+        <button id="diff-toggle" class="ctrl-btn">◈ DIFF</button>
+        <span class="ctrl-label" style="font-size:12px;">WORD-LEVEL DIFF: GREEN = UNIQUE TO CLAUDE · AMBER = UNIQUE TO GPT</span>
+      </div>
+
+      <div id="panels-container">
+        <!-- Claude Panel -->
+        <div class="response-panel" id="panel-anthropic">
+          <div class="panel-header">
+            <span class="panel-title" id="panel-anthropic-title">◈ CLAUDE</span>
+            <span class="panel-badge idle" id="badge-anthropic">IDLE</span>
+          </div>
+          <div class="panel-diff-summary hidden" id="diff-summary-anthropic"></div>
+          <div class="panel-body" id="output-anthropic"></div>
+          <div class="panel-footer">
+            <span class="token-info" id="tokens-anthropic">TOKENS: -- → --</span>
+            <span class="latency-info" id="latency-anthropic">LATENCY: --</span>
+            <button class="copy-btn" id="copy-anthropic">⎘ COPY</button>
+          </div>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <!-- GPT Panel -->
+        <div class="response-panel" id="panel-openai">
+          <div class="panel-header">
+            <span class="panel-title" id="panel-openai-title">◈ GPT</span>
+            <span class="panel-badge idle" id="badge-openai">IDLE</span>
+          </div>
+          <div class="panel-diff-summary hidden" id="diff-summary-openai"></div>
+          <div class="panel-body" id="output-openai"></div>
+          <div class="panel-footer">
+            <span class="token-info" id="tokens-openai">TOKENS: -- → --</span>
+            <span class="latency-info" id="latency-openai">LATENCY: --</span>
+            <button class="copy-btn" id="copy-openai">⎘ COPY</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <footer id="status-bar">
+      <span id="status-left">SWITCHBOARD READY</span>
+      <span id="status-right">ANTHROPIC -- | OPENAI --</span>
+    </footer>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
