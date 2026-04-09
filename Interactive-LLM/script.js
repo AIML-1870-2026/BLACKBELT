@@ -212,16 +212,16 @@ async function fetchOpenAIModels() {
 }
 
 function filterOpenAIModels(models) {
-  const CHAT_PREFIXES    = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
-  const EXCLUDED_SUFFIXES = [
-    'instruct', 'vision-preview', '0301', '0314', '0613',
-    'audio', 'realtime', 'search', 'mini-tts', 'transcribe'
+  // Block non-chat model types by keyword — any chat model (gpt-4, gpt-5, o3, o4, etc.) passes through
+  const BLOCKED = [
+    'embedding', 'tts', 'whisper', 'dall-e', 'davinci', 'babbage', 'ada', 'curie',
+    'moderation', 'audio', 'realtime', 'transcribe', 'search', 'mini-tts',
+    'instruct', 'vision-preview', '0301', '0314', '0613'
   ];
   return models
     .filter(m => {
       const id = m.id.toLowerCase();
-      return CHAT_PREFIXES.some(p => id.startsWith(p)) &&
-             !EXCLUDED_SUFFIXES.some(s => id.includes(s));
+      return !BLOCKED.some(b => id.includes(b));
     })
     .sort((a, b) => b.created - a.created)
     .slice(0, 5);
