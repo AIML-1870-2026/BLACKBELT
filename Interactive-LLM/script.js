@@ -115,7 +115,7 @@ function initKeys() {
   $$('.eye-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const inp = $(btn.dataset.target);
-      inp.type = inp.type === 'password' ? 'text' : 'password';
+      inp.classList.toggle('masked');
     });
   });
 

@@ -357,6 +357,11 @@ html, body {
   box-shadow: var(--glow-green);
 }
 
+.terminal-input.masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
 .terminal-input.error-flash {
   border-color: var(--accent-red) !important;
   box-shadow: var(--glow-red) !important;
