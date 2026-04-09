@@ -787,12 +787,12 @@ async function transmit() {
   };
 
   const openaiBody = {
-    _apiKey:        state.keys.openai,
-    model:          oaiModel,
-    max_tokens:     state.maxTokens,
-    stream:         true,
-    stream_options: { include_usage: true },
-    messages:       openaiMessages
+    _apiKey:                state.keys.openai,
+    model:                  oaiModel,
+    max_completion_tokens:  state.maxTokens,
+    stream:                 true,
+    stream_options:         { include_usage: true },
+    messages:               openaiMessages
   };
 
   // Fire both simultaneously
