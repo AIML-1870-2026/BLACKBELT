@@ -439,7 +439,8 @@ function renderResponse(panel, text, format) {
   } else {
     const div = document.createElement('div');
     if (window.marked) {
-      div.innerHTML = marked.parse(text);
+      const rawHtml = marked.parse(text);
+      div.innerHTML = window.DOMPurify ? DOMPurify.sanitize(rawHtml) : rawHtml;
     } else {
       div.style.whiteSpace = 'pre-wrap';
       div.style.wordBreak  = 'break-word';
@@ -468,6 +469,14 @@ function formatApiError(msg) {
   if (msg.includes('500')) return '[HTTP 500] SERVER ERROR';
   if (msg.includes('503')) return '[HTTP 503] SERVICE UNAVAILABLE';
   return `ERROR: ${msg}`;
+}
+
+function setErrorPanel(panel, msg) {
+  panel.innerHTML = '';
+  const span = document.createElement('span');
+  span.style.color = 'var(--accent-red)';
+  span.textContent = msg;
+  panel.appendChild(span);
 }
 
 // ═══════════════════════════════════════════════
@@ -578,7 +587,7 @@ async function streamAnthropic(body) {
       return { fullText, inputTokens, outputTokens, completed: false };
     }
 
-    panel.innerHTML = `<span style="color:var(--accent-red)">${formatApiError(err.message)}</span>`;
+    setErrorPanel(panel, formatApiError(err.message));
     setBadge('anthropic', 'error', 'ERROR');
     return { fullText: '', inputTokens: 0, outputTokens: 0, completed: false };
   }
@@ -685,7 +694,7 @@ async function streamOpenAI(body) {
       return { fullText, inputTokens, outputTokens, completed: false };
     }
 
-    panel.innerHTML = `<span style="color:var(--accent-red)">${formatApiError(err.message)}</span>`;
+    setErrorPanel(panel, formatApiError(err.message));
     setBadge('openai', 'error', 'ERROR');
     return { fullText: '', inputTokens: 0, outputTokens: 0, completed: false };
   }
@@ -705,25 +714,25 @@ async function transmit() {
   let hasError = false;
   if (!state.keys.anthropic) {
     flashKeyError('anthropic-key');
-    $('output-anthropic').innerHTML = '<span style="color:var(--accent-red)">ERROR: NO KEY PROVIDED</span>';
+    setErrorPanel($('output-anthropic'), 'ERROR: NO KEY PROVIDED');
     setBadge('anthropic', 'error', 'ERROR');
     hasError = true;
   }
   if (!state.keys.openai) {
     flashKeyError('openai-key');
-    $('output-openai').innerHTML = '<span style="color:var(--accent-red)">ERROR: NO KEY PROVIDED</span>';
+    setErrorPanel($('output-openai'), 'ERROR: NO KEY PROVIDED');
     setBadge('openai', 'error', 'ERROR');
     hasError = true;
   }
   if (hasError) return;
 
   if (!antModel) {
-    $('output-anthropic').innerHTML = '<span style="color:var(--accent-red)">ERROR: NO MODEL SELECTED</span>';
+    setErrorPanel($('output-anthropic'), 'ERROR: NO MODEL SELECTED');
     setBadge('anthropic', 'error', 'ERROR');
     return;
   }
   if (!oaiModel) {
-    $('output-openai').innerHTML = '<span style="color:var(--accent-red)">ERROR: NO MODEL SELECTED</span>';
+    setErrorPanel($('output-openai'), 'ERROR: NO MODEL SELECTED');
     setBadge('openai', 'error', 'ERROR');
     return;
   }

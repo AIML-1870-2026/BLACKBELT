@@ -7,11 +7,22 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
   <!-- Markdown rendering -->
-  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"
+          integrity="sha256-ib0BhGCHWzaM3GxMkMrxWPVGBEJ0upeRFjkzpfmRcgI="
+          crossorigin="anonymous"></script>
+  <!-- HTML sanitizer (prevents XSS from rendered markdown) -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"
+          integrity="sha256-R1iZbIzvoJjUOtKBqxMf4dCKdF0jLWDFHBHQHHlSv8E="
+          crossorigin="anonymous"></script>
   <!-- Syntax highlighting -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/base16/green-screen.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/json.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/base16/green-screen.min.css"
+        crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/core.min.js"
+          integrity="sha256-zcNH6pMoJYmyBqBpf5Z5LzMjXqABX1VGNC6oJlMM8Js="
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/languages/json.min.js"
+          integrity="sha256-dPHlnkVYSVi8bfOhV+7TkFQDRvR3BLMkXZoQ3IDNUPU="
+          crossorigin="anonymous"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
