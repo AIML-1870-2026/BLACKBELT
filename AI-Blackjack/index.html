@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLACKJACK_AGENT.exe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header id="header">
+    <div id="header-left">
+      <span id="app-title">BLACKJACK_AGENT.exe</span>
+    </div>
+    <div id="header-center">
+      <span id="bankroll-display">$1,000.00</span>
+      <div id="count-display">
+        <span>RC: <span id="rc-value" class="count-neutral">+0</span></span>
+        <span>TC: <span id="tc-value">+0.0</span></span>
+      </div>
+    </div>
+    <div id="header-right">
+      <div id="mode-toggle-container">
+        <span class="mode-label active-label" id="advisor-label">ADVISOR</span>
+        <div id="mode-toggle" role="switch" aria-checked="false" title="Toggle Advisor / Autopilot">
+          <div class="toggle-thumb"></div>
+        </div>
+        <span class="mode-label" id="autopilot-label">AUTOPILOT</span>
+      </div>
+      <button id="settings-btn" class="icon-btn" title="Settings">⚙</button>
+      <button id="key-btn" class="icon-btn" title="API Key">🔑</button>
+      <span id="key-status" title="API Key Status">🔴</span>
+    </div>
+  </header>
+
+  <!-- Shoe bar -->
+  <div id="shoe-bar-container">
+    <div id="shoe-bar-fill" style="width:100%"></div>
+    <span id="shoe-label">SHOE 100%</span>
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="settings-panel" class="panel hidden">
+    <div class="panel-header">SETTINGS</div>
+    <div class="settings-grid">
+      <label>Number of decks</label>
+      <select id="setting-decks">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="4">4</option>
+        <option value="6" selected>6</option>
+        <option value="8">8</option>
+      </select>
+
+      <label>Dealer hits soft 17</label>
+      <input type="checkbox" id="setting-h17" checked>
+
+      <label>Allow surrender</label>
+      <input type="checkbox" id="setting-surrender" checked>
+
+      <label>Double after split</label>
+      <input type="checkbox" id="setting-das" checked>
+
+      <label>Allow re-splits</label>
+      <input type="checkbox" id="setting-resplit" checked>
+
+      <label>Starting bankroll ($)</label>
+      <input type="number" id="setting-bankroll" value="1000" min="100" max="100000" step="100">
+
+      <label>Autopilot delay</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="range" id="setting-delay" min="0.5" max="3" step="0.1" value="1.5">
+        <span id="setting-delay-val" style="color:var(--accent);font-size:11px">1.5s</span>
+      </div>
+
+      <label>Bet confirm threshold ($)</label>
+      <input type="number" id="setting-threshold" value="100" min="5" max="500" step="5">
+
+      <label>Show count panel</label>
+      <input type="checkbox" id="setting-count" checked>
+
+      <label>AI model</label>
+      <select id="setting-model">
+        <option value="gpt-4o" selected>gpt-4o</option>
+        <option value="gpt-4o-mini">gpt-4o-mini ⚠️</option>
+      </select>
+
+      <label>Show BS hint</label>
+      <input type="checkbox" id="setting-bs-hint">
+
+      <label>Keyboard shortcuts</label>
+      <input type="checkbox" id="setting-keys" checked>
+    </div>
+    <div id="model-warning" class="warning-text hidden">
+      ⚠️ gpt-4o-mini may produce less accurate card counting math and strategy deviations. Recommended for testing only.
+    </div>
+    <button id="settings-apply-btn" class="btn-primary" style="margin-top:12px;width:100%">APPLY</button>
+  </div>
+
+  <!-- Key Panel -->
+  <div id="key-panel" class="panel hidden">
+    <div class="panel-header">API KEY &nbsp;<span id="key-panel-status">🔴</span></div>
+
+    <div id="env-upload-zone" class="upload-zone">
+      <input type="file" id="env-file-input" accept=".env,.txt" style="display:none">
+      <label for="env-file-input" class="upload-label">📂 UPLOAD .env FILE</label>
+      <div id="env-upload-error" class="error-text hidden"></div>
+    </div>
+
+    <div class="key-divider">— OR PASTE KEY —</div>
+
+    <div class="key-input-row">
+      <input type="password" id="key-input" placeholder="sk-..." class="key-input" autocomplete="off" spellcheck="false">
+      <button id="key-reveal-btn" class="icon-btn" title="Toggle visibility">👁</button>
+    </div>
+    <div class="key-actions">
+      <button id="key-save-btn" class="btn-primary">SAVE FOR SESSION</button>
+      <button id="key-clear-btn" class="btn-danger">CLEAR</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <main id="table">
+    <section id="dealer-area">
+      <div class="area-label">DEALER</div>
+      <div id="dealer-hand" class="hand-row"></div>
+      <div id="dealer-total"></div>
+    </section>
+
+    <section id="player-area">
+      <div class="area-label">PLAYER</div>
+      <div id="player-hands-container"></div>
+    </section>
+
+    <div id="insurance-prompt" class="insurance-container hidden">
+      <span>INSURANCE?</span>
+      <button id="insurance-yes-btn" class="btn-primary">YES ($<span id="insurance-cost">0</span>)</button>
+      <button id="insurance-no-btn" class="btn-secondary">NO</button>
+    </div>
+  </main>
+
+  <!-- Betting Area -->
+  <div id="betting-area" class="visible">
+    <div id="agent-bet-suggestion"></div>
+    <div id="chip-tray">
+      <button class="chip-btn" data-value="5">$5</button>
+      <button class="chip-btn" data-value="10">$10</button>
+      <button class="chip-btn" data-value="25">$25</button>
+      <button class="chip-btn" data-value="50">$50</button>
+      <button class="chip-btn" data-value="100">$100</button>
+      <span id="bet-display">BET: $0</span>
+      <button id="clear-bet-btn" class="btn-secondary hidden">CLEAR</button>
+      <button id="deal-btn" class="btn-primary">DEAL</button>
+    </div>
+  </div>
+
+  <!-- Agent Panel -->
+  <div id="agent-panel">
+    <div id="agent-panel-header">&gt; AGENT</div>
+    <div id="agent-card">
+      <div id="agent-card-content">
+        <div class="agent-idle">Enter your API key to enable the agent, or play without it using basic strategy.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div id="action-buttons" class="hidden">
+    <button class="action-btn" id="btn-hit"      data-action="hit">HIT<kbd>H</kbd></button>
+    <button class="action-btn" id="btn-stand"    data-action="stand">STAND<kbd>S</kbd></button>
+    <button class="action-btn" id="btn-double"   data-action="double_down">DOUBLE<kbd>D</kbd></button>
+    <button class="action-btn" id="btn-split"    data-action="split">SPLIT<kbd>P</kbd></button>
+    <button class="action-btn" id="btn-surrender" data-action="surrender">SURR<kbd>X</kbd></button>
+  </div>
+
+  <!-- Pause (autopilot only) -->
+  <div id="pause-container" class="hidden">
+    <button id="pause-btn" class="btn-danger">⏸ PAUSE</button>
+  </div>
+
+  <!-- Game Over -->
+  <div id="game-over-overlay" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="overlay-title">GAME OVER</div>
+      <div id="game-over-stats"></div>
+      <button id="rebuy-btn" class="btn-primary">REBUY</button>
+    </div>
+  </div>
+
+  <!-- Reset dialog -->
+  <div id="reset-dialog" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="overlay-title">NEW SESSION?</div>
+      <p>Reset hand history and card count?</p>
+      <div class="dialog-buttons">
+        <button id="reset-yes-btn" class="btn-danger">YES, RESET</button>
+        <button id="reset-no-btn" class="btn-secondary">KEEP COUNT</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
