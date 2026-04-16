@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LABGEN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="boot-screen">
+    <div id="boot-text"></div>
+    <div id="boot-skip">[ CLICK TO SKIP ]</div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="scanlines"></div>
+
+    <header id="header">
+      <div class="header-title">
+        <span class="bracket">[</span>
+        <span class="title-text">LABGEN</span>
+        <span class="bracket">]</span>
+      </div>
+      <div class="header-tagline">> K-12 SCIENCE EXPERIMENT GENERATOR //<span class="blink-cursor">|</span></div>
+    </header>
+
+    <main>
+
+      <!-- Config Panel -->
+      <div id="config-panel">
+
+        <!-- API Key -->
+        <div class="config-row">
+          <label class="ctrl-label">> OPENAI_API_KEY</label>
+          <div class="key-input-wrap">
+            <input type="text" id="openai-key" class="terminal-input masked"
+              placeholder="sk-..." autocomplete="off" data-lpignore="true" data-1p-ignore>
+            <button class="eye-btn" data-target="openai-key">&#128065;</button>
+          </div>
+          <span id="key-status" class="key-bad">[NO KEY]</span>
+        </div>
+
+        <!-- Grade Band -->
+        <div class="config-row">
+          <label class="ctrl-label">> GRADE BAND</label>
+          <div class="grade-band-group">
+            <button class="grade-btn active" data-band="K-2">K&ndash;2</button>
+            <button class="grade-btn" data-band="3-5">3&ndash;5</button>
+            <button class="grade-btn" data-band="6-8">6&ndash;8</button>
+            <button class="grade-btn" data-band="9-12">9&ndash;12</button>
+          </div>
+        </div>
+
+        <!-- Subject Filter (optional) -->
+        <div class="config-row">
+          <label class="ctrl-label">> SUBJECT</label>
+          <select id="subject-select" class="terminal-select">
+            <option value="any">Any</option>
+            <option value="biology">Biology</option>
+            <option value="chemistry">Chemistry</option>
+            <option value="physics">Physics</option>
+            <option value="earth science">Earth Science</option>
+            <option value="environmental science">Environmental Science</option>
+          </select>
+        </div>
+
+        <!-- Available Supplies -->
+        <div class="config-row supplies-row">
+          <label class="ctrl-label">> AVAILABLE SUPPLIES</label>
+          <textarea id="supplies-input" class="terminal-input supplies-textarea"
+            placeholder="e.g. baking soda, vinegar, food coloring, plastic cups, measuring tape..."></textarea>
+        </div>
+
+        <!-- Model -->
+        <div class="config-row">
+          <label class="ctrl-label">> MODEL</label>
+          <select id="model-select" class="terminal-select">
+            <option value="gpt-4o">gpt-4o</option>
+            <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+          </select>
+        </div>
+
+        <!-- Generate Button -->
+        <button id="generate-btn" class="transmit-btn">&#9654; GENERATE OPTIONS</button>
+      </div>
+
+      <!-- Status Line -->
+      <div id="gen-status"></div>
+
+      <!-- Phase 1: Options -->
+      <section id="options-section" class="hidden"></section>
+
+      <!-- Phase 2: Expanded Experiment -->
+      <section id="experiment-section" class="hidden">
+        <button id="back-btn" class="ctrl-btn">&lt; BACK TO OPTIONS</button>
+        <div id="experiment-card"></div>
+      </section>
+
+    </main>
+
+    <footer id="status-bar">
+      <span id="status-left">EXPERIMENT ENGINE READY</span>
+      <span id="status-right">BAND: K-2 | MODEL: gpt-4o-mini</span>
+    </footer>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

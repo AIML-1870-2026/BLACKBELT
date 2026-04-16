@@ -1,0 +1,726 @@
+/* ============================================================
+   LABGEN — Science Experiment Generator
+   Reuses visual foundation from temp/Product-Review/style.css
+   ============================================================ */
+
+/* ── CSS Variables (verbatim from reference) ───────────────── */
+:root {
+  --bg-primary:   #0a0a0a;
+  --bg-panel:     #0f0f0f;
+  --bg-surface:   #141414;
+  --accent-green: #00ff88;
+  --accent-amber: #ffaa00;
+  --accent-red:   #ff3333;
+  --accent-cyan:  #00ccff;
+  --text-primary: #e0e0e0;
+  --text-dim:     #555555;
+  --border-color: #1e3a1e;
+  --glow-green:   0 0 8px #00ff8855, 0 0 20px #00ff8822;
+  --glow-amber:   0 0 8px #ffaa0055, 0 0 20px #ffaa0022;
+  --glow-red:     0 0 8px #ff333355, 0 0 20px #ff333322;
+  --glow-cyan:    0 0 8px #00ccff55, 0 0 20px #00ccff22;
+}
+
+/* ── Global Reset (verbatim from reference) ────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  font-size: 13px;
+  overflow-x: hidden;
+}
+
+/* ── Scanlines (verbatim from reference) ───────────────────── */
+.scanlines {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 4px
+  );
+}
+
+/* ── CRT Flicker (verbatim from reference) ─────────────────── */
+@keyframes flicker {
+  0%, 95%, 100% { opacity: 1;     }
+  96%           { opacity: 0.997; }
+  97%           { opacity: 0.985; }
+  98%           { opacity: 0.993; }
+  99%           { opacity: 0.98;  }
+}
+
+/* ── App Shell ─────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  animation: flicker 10s infinite;
+}
+
+#app.hidden { display: none; }
+
+main {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 16px;
+  flex: 1;
+}
+
+/* ── Boot Screen (verbatim from reference) ─────────────────── */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  cursor: pointer;
+}
+
+#boot-text {
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  letter-spacing: 0.18em;
+  color: var(--accent-green);
+  text-shadow: var(--glow-green);
+  white-space: pre;
+  min-height: 8em;
+  max-width: 640px;
+  width: 100%;
+  padding: 0 20px;
+}
+
+#boot-skip {
+  margin-top: 32px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  animation: blink-anim 1.2s step-end infinite;
+}
+
+@keyframes blink-anim {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── ctrl-btn (verbatim from reference) ────────────────────── */
+.ctrl-btn {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--accent-green);
+  padding: 3px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ctrl-btn:hover {
+  border-color: var(--accent-green);
+  box-shadow: var(--glow-green);
+}
+
+.ctrl-btn.amber {
+  color: var(--accent-amber);
+  border-color: #2a1a00;
+}
+.ctrl-btn.amber:hover {
+  border-color: var(--accent-amber);
+  box-shadow: var(--glow-amber);
+}
+
+.ctrl-btn.dim {
+  color: var(--text-dim);
+  border-color: #1a1a1a;
+}
+.ctrl-btn.dim:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  box-shadow: var(--glow-cyan);
+}
+
+/* ── ctrl-label (verbatim from reference) ──────────────────── */
+.ctrl-label {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* ── terminal-select (verbatim from reference) ─────────────── */
+.terminal-select {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--accent-green);
+  padding: 4px 26px 4px 8px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Ctext y='7' font-size='9' fill='%2300ff88' font-family='monospace'%3E%E2%96%BC%3C/text%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  max-width: 210px;
+}
+
+.terminal-select:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  box-shadow: var(--glow-green);
+}
+
+/* ── terminal-input (verbatim from reference) ──────────────── */
+.terminal-input {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--accent-green);
+  padding: 5px 10px;
+  width: 260px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.terminal-input:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  box-shadow: var(--glow-green);
+}
+
+.terminal-input.masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.terminal-input.error-flash {
+  border-color: var(--accent-red) !important;
+  box-shadow: var(--glow-red) !important;
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0);     }
+  20%       { transform: translateX(-5px); }
+  60%       { transform: translateX(5px);  }
+}
+
+/* ── eye-btn (verbatim from reference) ─────────────────────── */
+.eye-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px 7px;
+  font-size: 12px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.eye-btn:hover {
+  border-color: var(--accent-amber);
+  color: var(--accent-amber);
+}
+
+/* ── key-input-wrap ────────────────────────────────────────── */
+.key-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── key status (verbatim from reference) ──────────────────── */
+.key-good {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  color: var(--accent-green);
+  text-shadow: var(--glow-green);
+}
+.key-bad {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  color: var(--accent-red);
+}
+
+/* ── transmit-btn (verbatim from reference) ────────────────── */
+.transmit-btn {
+  font-family: 'VT323', monospace;
+  font-size: 24px;
+  letter-spacing: 0.22em;
+  background: transparent;
+  border: 2px solid var(--accent-green);
+  color: var(--accent-green);
+  padding: 7px 48px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: var(--glow-green);
+  box-shadow: var(--glow-green);
+}
+
+.transmit-btn:hover {
+  background: rgba(0, 255, 136, 0.07);
+  box-shadow: 0 0 18px #00ff8877, 0 0 40px #00ff8833;
+}
+
+.transmit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── stream-cursor (verbatim from reference) ───────────────── */
+.stream-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--accent-green);
+  vertical-align: text-bottom;
+  margin-left: 1px;
+  animation: cursor-blink 0.7s step-end infinite;
+  box-shadow: var(--glow-green);
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── copy-btn (verbatim from reference) ────────────────────── */
+.copy-btn {
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  padding: 1px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: var(--glow-cyan);
+}
+
+.copy-btn.copied {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+  box-shadow: var(--glow-green);
+}
+
+/* ── Status Bar (verbatim from reference) ──────────────────── */
+#status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 16px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  font-size: 11px;
+  color: var(--text-dim);
+  position: sticky;
+  bottom: 0;
+}
+
+#status-left {
+  color: var(--accent-green);
+  text-shadow: var(--glow-green);
+  letter-spacing: 0.06em;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+}
+
+#status-left.transmitting {
+  color: var(--accent-amber);
+  text-shadow: var(--glow-amber);
+}
+
+#status-left.error {
+  color: var(--accent-red);
+  text-shadow: var(--glow-red);
+}
+
+#status-right {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+/* ── Scrollbar (verbatim from reference) ───────────────────── */
+::-webkit-scrollbar             { width: 5px; height: 5px; }
+::-webkit-scrollbar-track       { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb       { background: var(--border-color); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-green); }
+
+/* ── hidden utility (verbatim from reference) ──────────────── */
+.hidden { display: none !important; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .terminal-input  { width: 190px; }
+  .transmit-btn    { font-size: 20px; padding: 6px 30px; }
+  .supplies-textarea { width: 100% !important; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   NEW STYLES — specific to LABGEN
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Header ────────────────────────────────────────────────── */
+#header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-panel);
+}
+
+.header-title {
+  font-family: 'VT323', monospace;
+  font-size: 30px;
+  letter-spacing: 0.15em;
+  color: var(--accent-green);
+  text-shadow: var(--glow-green);
+}
+
+.bracket    { color: var(--accent-amber); }
+.title-text { color: var(--accent-green); }
+
+.header-tagline {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+
+.blink-cursor {
+  animation: blink-anim 1.2s step-end infinite;
+  color: var(--accent-green);
+}
+
+/* ── Config Panel ──────────────────────────────────────────── */
+#config-panel {
+  margin-bottom: 24px;
+}
+
+.config-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+/* ── Grade Band Toggle ─────────────────────────────────────── */
+.grade-band-group {
+  display: flex;
+  gap: 0;
+}
+
+.grade-btn {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-dim);
+  padding: 3px 14px;
+  cursor: pointer;
+  margin-left: -1px;
+  transition: all 0.2s;
+}
+
+.grade-btn:first-child { margin-left: 0; }
+
+.grade-btn.active {
+  background: rgba(0,255,136,0.06);
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+  box-shadow: var(--glow-green);
+  z-index: 1;
+  position: relative;
+}
+
+.grade-btn:hover { color: var(--accent-green); }
+
+/* ── Supplies Textarea ─────────────────────────────────────── */
+.supplies-row { align-items: flex-start; }
+
+.supplies-textarea {
+  width: 420px;
+  height: 72px;
+  resize: vertical;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Gen Status ────────────────────────────────────────────── */
+#gen-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  min-height: 20px;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+}
+
+#gen-status.status-loading { color: var(--accent-amber); }
+#gen-status.status-success { color: var(--accent-green); }
+#gen-status.status-error   { color: var(--accent-red);   }
+
+/* ── Option Cards (Phase 1) ────────────────────────────────── */
+#options-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.option-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent-green);
+  padding: 16px 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  animation: cardIn 0.3s ease forwards;
+  opacity: 0;
+}
+
+.option-card:hover {
+  border-color: var(--accent-green);
+  box-shadow: var(--glow-green);
+  background: rgba(0,255,136,0.03);
+}
+
+.option-number {
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  color: var(--accent-amber);
+  margin-bottom: 4px;
+  letter-spacing: 0.08em;
+}
+
+.option-title {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+
+.option-concept {
+  font-size: 12px;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+.option-select-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 10px;
+  letter-spacing: 0.05em;
+}
+
+/* Difficulty badge on option cards */
+.difficulty-badge {
+  display: inline-block;
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border: 1px solid;
+  margin-bottom: 6px;
+}
+
+.difficulty-easy {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.difficulty-medium {
+  color: var(--accent-amber);
+  border-color: var(--accent-amber);
+}
+
+.difficulty-challenging {
+  color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+/* Regen button row */
+.options-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* ── Experiment Card (Phase 2) ─────────────────────────────── */
+#back-btn {
+  margin-bottom: 16px;
+}
+
+.experiment-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent-green);
+  border-radius: 2px;
+  overflow: hidden;
+  animation: cardIn 0.3s ease forwards;
+  opacity: 0;
+}
+
+.exp-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 24px;
+}
+
+.exp-grade-badge {
+  font-family: 'VT323', monospace;
+  font-size: 13px;
+  color: var(--accent-amber);
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.exp-title {
+  font-family: 'VT323', monospace;
+  font-size: 26px;
+  color: var(--accent-green);
+  text-shadow: var(--glow-green);
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.exp-concept {
+  font-size: 12px;
+  color: var(--accent-cyan);
+  letter-spacing: 0.04em;
+}
+
+.exp-header-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.exp-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.exp-section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.exp-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.exp-section-label {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--accent-amber);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.exp-section-content {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+.exp-section-content ol,
+.exp-section-content ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.exp-section-content li {
+  margin-bottom: 4px;
+}
+
+.exp-section-content .safety-item {
+  color: var(--accent-red);
+}
+
+.exp-section-content .discussion-item {
+  color: var(--text-primary);
+}
+
+/* Substitute table */
+.sub-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.sub-table th {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  color: var(--accent-amber);
+  text-align: left;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sub-table td {
+  padding: 4px 10px;
+  color: var(--text-dim);
+  border-bottom: 1px solid #111;
+}
+
+.sub-table td:first-child {
+  color: var(--text-primary);
+}
+
+.sub-loading {
+  color: var(--accent-amber);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

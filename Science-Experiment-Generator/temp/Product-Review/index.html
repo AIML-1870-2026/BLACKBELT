@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REVIEWAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="boot-screen">
+    <div id="boot-text"></div>
+    <div id="boot-skip">[ CLICK TO SKIP ]</div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="scanlines"></div>
+
+    <header id="header">
+      <div class="header-title">
+        <span class="bracket">[</span>
+        <span class="title-text">REVIEWAI</span>
+        <span class="bracket">]</span>
+      </div>
+      <div class="header-tagline">&gt; PRODUCT REVIEW GENERATOR //<span class="blink-cursor">|</span></div>
+    </header>
+
+    <main>
+      <div id="config-panel">
+
+        <div class="config-row">
+          <label class="ctrl-label">&gt; OPENAI_API_KEY</label>
+          <div class="key-input-wrap">
+            <input type="text" id="openai-key" class="terminal-input masked"
+              placeholder="sk-..." autocomplete="off" data-lpignore="true" data-1p-ignore>
+            <button class="eye-btn" data-target="openai-key">👁</button>
+          </div>
+          <span id="key-status" class="key-bad">[NO KEY]</span>
+        </div>
+
+        <div class="config-row">
+          <label class="ctrl-label">&gt; PRODUCT</label>
+          <input type="text" id="product-input" class="terminal-input"
+            placeholder="e.g. Sony WH-1000XM5 Headphones" style="width: 360px;">
+        </div>
+
+        <div class="config-row">
+          <label class="ctrl-label">&gt; MODEL</label>
+          <select id="model-select" class="terminal-select">
+            <option value="gpt-4o">gpt-4o</option>
+            <option value="gpt-4o-mini" selected>gpt-4o-mini</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+          </select>
+        </div>
+
+        <div class="config-row">
+          <label class="ctrl-label">&gt; COUNT</label>
+          <select id="count-select" class="terminal-select">
+            <option value="3">3</option>
+            <option value="5" selected>5</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+
+        <div id="sentiment-section">
+          <div class="sentiment-heading ctrl-label">&gt; SENTIMENT</div>
+          <div class="slider-group">
+
+            <div class="slider-row">
+              <span class="slider-label">POSITIVITY</span>
+              <input type="range" class="sentiment-slider" id="sl-positivity" min="0" max="100" value="50">
+              <span class="slider-val" id="val-positivity">[50]</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="slider-label">VARIANCE</span>
+              <input type="range" class="sentiment-slider" id="sl-variance" min="0" max="100" value="70">
+              <span class="slider-val" id="val-variance">[70]</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="slider-label">DETAIL LEVEL</span>
+              <input type="range" class="sentiment-slider" id="sl-detail" min="0" max="100" value="50">
+              <span class="slider-val" id="val-detail">[50]</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="slider-label">PRICE SENTIMENT</span>
+              <input type="range" class="sentiment-slider" id="sl-price" min="0" max="100" value="50">
+              <span class="slider-val" id="val-price">[50]</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="slider-label">FEATURE SATISFACTION</span>
+              <input type="range" class="sentiment-slider" id="sl-features" min="0" max="100" value="50">
+              <span class="slider-val" id="val-features">[50]</span>
+            </div>
+
+            <div class="slider-row">
+              <span class="slider-label">USABILITY</span>
+              <input type="range" class="sentiment-slider" id="sl-usability" min="0" max="100" value="50">
+              <span class="slider-val" id="val-usability">[50]</span>
+            </div>
+
+          </div>
+        </div>
+
+        <button id="generate-btn" class="transmit-btn">&#x25B6; GENERATE REVIEWS</button>
+      </div>
+
+      <div id="gen-status"></div>
+      <section id="results"></section>
+    </main>
+
+    <footer id="status-bar">
+      <span id="status-left">REVIEW ENGINE READY</span>
+      <span id="status-right">MODEL: gpt-4o-mini | COUNT: 5</span>
+    </footer>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
