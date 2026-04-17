@@ -1308,8 +1308,7 @@ function setupEventListeners() {
   });
   document.getElementById('key-clear-btn').addEventListener('click', clearApiKey);
   document.getElementById('key-reveal-btn').addEventListener('click', () => {
-    const input = document.getElementById('key-input');
-    input.type = input.type === 'password' ? 'text' : 'password';
+    document.getElementById('key-input').classList.toggle('masked');
   });
   document.getElementById('key-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') saveApiKey(e.target.value);

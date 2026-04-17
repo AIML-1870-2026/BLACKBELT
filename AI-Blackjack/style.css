@@ -340,6 +340,7 @@ body::after {
 }
 
 .key-input:focus { outline: none; border-color: var(--accent); }
+.key-input.masked { -webkit-text-security: disc; text-security: disc; }
 
 .key-actions {
   display: flex;
